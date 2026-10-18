@@ -50,8 +50,19 @@ void Controller::update() {
     return;
   }
 
+  readBoundButtons();
   applyHostOutput();
   sendInputReport();
+}
+
+// Presses or releases the bound buttons from their pins.
+void Controller::readBoundButtons() {
+  for (uint8_t button = 0; button < internal::BUTTON_COUNT; button++) {
+    internal::ButtonBinding &binding = _buttonBindings[button];
+    if (binding.isAttached()) {
+      setButton(static_cast<Button>(button), binding.read(_debounceMs));
+    }
+  }
 }
 
 // Applies the rumble and lightbar changes requested by the host, if any.
@@ -141,6 +152,30 @@ void Controller::setTrigger(Trigger trigger, uint8_t value) {
 // Puts all the controls at rest.
 void Controller::releaseAll() {
   _state = internal::ControlState();
+}
+
+// Drives a button from a pin of the board.
+void Controller::bind(Button button, uint8_t pin, ButtonWiring wiring) {
+  if (button >= internal::BUTTON_COUNT) {
+    return;
+  }
+
+  _buttonBindings[button].attach(pin, wiring);
+}
+
+// Stops driving a button from its pin, and releases it.
+void Controller::unbind(Button button) {
+  if (button >= internal::BUTTON_COUNT || !_buttonBindings[button].isAttached()) {
+    return;
+  }
+
+  _buttonBindings[button].detach();
+  setButton(button, false);
+}
+
+// Sets how long a bound button ignores its pin after a press or a release.
+void Controller::setDebounceTime(uint16_t debounceMs) {
+  _debounceMs = debounceMs;
 }
 
 // Sets the MAC address reported to the host.

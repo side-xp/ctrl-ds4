@@ -10,6 +10,7 @@
 #include <Arduino.h>
 
 #include "CtrlDS4/Types.h"
+#include "CtrlDS4/ButtonBinding.h"
 #include "CtrlDS4/ControlState.h"
 #include "CtrlDS4/UsbDevice.h"
 
@@ -19,9 +20,9 @@ namespace CtrlDS4 {
 /**
  * @brief Emulated DS4 controller.
  *
- * Call begin() once from setup(), then update() on every iteration of loop(). Set the state of the
- * controls at any time with the setters (setButton(), setStick(), setTrigger()): update() reports
- * the latest state to the host.
+ * Call begin() once from setup(), then update() on every iteration of loop(). Drive the controls
+ * by binding buttons to pins with bind(), or set them from the sketch with the setters
+ * (setButton(), setStick(), setTrigger()): update() reports the latest state to the host.
  *
  * Declare a single Controller in a sketch, since the board presents itself as one DS4.
  *
@@ -29,11 +30,11 @@ namespace CtrlDS4 {
  * CtrlDS4::Controller controller;
  *
  * void setup() {
+ *   controller.bind(CtrlDS4::Cross, 2);
  *   controller.begin();
  * }
  *
  * void loop() {
- *   controller.setButton(CtrlDS4::Cross, digitalRead(2) == LOW);
  *   controller.update();
  * }
  * @endcode
@@ -77,9 +78,9 @@ public:
   /**
    * @brief Exchanges the latest state with the host.
    *
-   * Applies the rumble and lightbar changes requested by the host (calling the callbacks set with
-   * onRumble(), onLightbarColor() and onLightbarBlink()), then sends the state of the controls when
-   * the host is ready for it.
+   * Reads the pins of the bound buttons, applies the rumble and lightbar changes requested by the
+   * host (calling the callbacks set with onRumble(), onLightbarColor() and onLightbarBlink()), then
+   * sends the state of the controls when the host is ready for it.
    *
    * Call on every iteration of loop(), without blocking it for long: the host expects a new report
    * every few milliseconds. Does nothing until begin() has succeeded.
@@ -97,6 +98,9 @@ public:
 
   /**
    * @brief Presses or releases a button.
+   *
+   * A button bound to a pin (see bind()) follows its pin instead: the next update() overrides the
+   * value set here.
    *
    * @param button Button to change. Ignored if it's not a Button value.
    * @param isPressed true to press the button, false to release it.
@@ -128,6 +132,46 @@ public:
    * @brief Puts all the controls at rest: buttons released, sticks centered and triggers released.
    */
   void releaseAll();
+
+  /* --- Pin bindings --- */
+
+  /**
+   * @brief Drives a button from a pin of the board.
+   *
+   * Sets the mode of the pin for the wiring, then update() reads it and presses or releases the
+   * button, filtering the bounces of the contacts (see setDebounceTime()).
+   *
+   * @code
+   * controller.bind(CtrlDS4::Cross, 2);                       // Button between pin 2 and GND
+   * controller.bind(CtrlDS4::Circle, 3, CtrlDS4::ActiveHigh);  // Button between pin 3 and 3.3V
+   * @endcode
+   *
+   * @param button Button to drive. Ignored if it's not a Button value. Binding it again replaces
+   * its previous pin.
+   * @param pin Pin the button is wired to.
+   * @param wiring How the button is wired to the pin.
+   */
+  void bind(Button button, uint8_t pin, ButtonWiring wiring = ActiveLow);
+
+  /**
+   * @brief Stops driving a button from its pin, and releases it.
+   *
+   * The mode of the pin is left as is.
+   *
+   * @param button Button to stop driving. Ignored if it's not a Button value, or not bound.
+   */
+  void unbind(Button button);
+
+  /**
+   * @brief Sets how long a bound button ignores its pin after a press or a release.
+   *
+   * Mechanical buttons bounce for a few milliseconds, which would read as several presses. Presses
+   * are still reported at once: this only limits how fast a button can be pressed again.
+   *
+   * @param debounceMs Duration in milliseconds, DEFAULT_DEBOUNCE_MS until set. Raise it if a button
+   * reports double presses, lower it for very fast repeated presses. 0 disables the filter.
+   */
+  void setDebounceTime(uint16_t debounceMs);
 
   /* --- MAC address --- */
 
@@ -213,6 +257,11 @@ public:
 
 private:
   /**
+   * @brief Presses or releases the bound buttons from their pins.
+   */
+  void readBoundButtons();
+
+  /**
    * @brief Applies the rumble and lightbar changes requested by the host, if any.
    *
    * Calls the callbacks of the parts that changed.
@@ -229,6 +278,11 @@ private:
 
   /// State of the controls, as set by the setters.
   internal::ControlState _state;
+
+  /// Pin binding of each button, indexed by the Button value.
+  internal::ButtonBinding _buttonBindings[internal::BUTTON_COUNT];
+  /// How long a bound button ignores its pin after a change, in milliseconds.
+  uint16_t _debounceMs = DEFAULT_DEBOUNCE_MS;
 
   /// MAC address reported to the host.
   MacAddress _macAddress;

@@ -45,6 +45,22 @@ enum Button : uint8_t {
 };
 
 /**
+ * @brief How a button is wired to its pin, for Controller::bind().
+ */
+enum ButtonWiring : uint8_t {
+  /// Button between the pin and GND, the most common wiring. Uses the internal pull-up resistor of
+  /// the pin, so it needs no other component: the pin reads LOW while the button is pressed.
+  ActiveLow,
+  /// Button between the pin and 3.3V. Uses the internal pull-down resistor of the pin: the pin
+  /// reads HIGH while the button is pressed.
+  ActiveHigh
+};
+
+/// Default debounce time of the bound buttons, in milliseconds: longer than the bounces of most
+/// buttons (see Controller::setDebounceTime()).
+constexpr uint16_t DEFAULT_DEBOUNCE_MS = 10;
+
+/**
  * @brief Analog sticks of the controller.
  *
  * Each axis goes from STICK_MIN to STICK_MAX, like on a real DS4: X goes from left to right, and
