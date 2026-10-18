@@ -1,10 +1,40 @@
 #include "CtrlDS4.h"
 
+#include "CtrlDS4/UniqueId.h"
+
 namespace CtrlDS4 {
+
+namespace {
+
+/**
+ * @brief Builds the MAC address used when the board has no usable unique ID.
+ *
+ * It's locally administered, like the addresses derived from a unique ID, so it can't match the
+ * address of a real device.
+ *
+ * @return The fallback MAC address.
+ */
+MacAddress makeFallbackMacAddress() {
+  return MacAddress(0x02, 0x00, 0x00, 0x00, 0x00, 0x01);
+}
+
+}  // namespace
 
 // Initializes the library. Call once from setup().
 bool Controller::begin() {
-  // @todo Initialize pins, peripherals and state here.
+  if (_macAddressSource != MacFromSketch) {
+    uint8_t uniqueId[internal::UNIQUE_ID_MAX_SIZE];
+    uint8_t uniqueIdSize = internal::readUniqueId(uniqueId);
+    if (uniqueIdSize > 0) {
+      _macAddress = internal::makeMacAddress(uniqueId, uniqueIdSize);
+      _macAddressSource = MacFromUniqueId;
+    } else {
+      _macAddress = makeFallbackMacAddress();
+      _macAddressSource = MacFallback;
+    }
+  }
+
+  // @todo Initialize the USB device here.
   _isReady = true;
   return _isReady;
 }
@@ -59,6 +89,22 @@ void Controller::setTrigger(Trigger trigger, uint8_t value) {
 // Puts all the controls at rest.
 void Controller::releaseAll() {
   _state = internal::ControlState();
+}
+
+// Sets the MAC address reported to the host.
+void Controller::setMacAddress(const MacAddress &macAddress) {
+  _macAddress = macAddress;
+  _macAddressSource = MacFromSketch;
+}
+
+// Gets the MAC address reported to the host.
+const MacAddress &Controller::getMacAddress() const {
+  return _macAddress;
+}
+
+// Tells where the MAC address comes from.
+MacAddressSource Controller::getMacAddressSource() const {
+  return _macAddressSource;
 }
 
 }  // namespace CtrlDS4

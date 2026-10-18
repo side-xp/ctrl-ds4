@@ -12,8 +12,9 @@ vars:
   # Tracked and new files, without the ignored ones (such as build outputs).
   SOURCES:
     sh: git ls-files --cached --others --exclude-standard -- '*.c' '*.cpp' '*.h' '*.hpp' '*.ino'
-  EXAMPLES:
-    sh: git ls-files --cached --others --exclude-standard -- 'examples/*.ino'
+  # The examples, and the test sketches of extras/tests (hidden from the Arduino IDE examples).
+  SKETCHES:
+    sh: git ls-files --cached --others --exclude-standard -- 'examples/*.ino' 'extras/tests/*.ino'
 
 tasks:
   check:
@@ -39,7 +40,7 @@ tasks:
       - arduino-lint --compliance strict --library-manager {{.LIBRARY_MANAGER_MODE}} --project-type library
 
   compile:
-    desc: Compile the examples for each board of BOARDS
+    desc: Compile the examples and test sketches for each board of BOARDS
     cmds:
       - for: { var: BOARDS }
         task: compile:board
@@ -48,7 +49,7 @@ tasks:
   compile:board:
     internal: true
     cmds:
-      - for: { var: EXAMPLES }
+      - for: { var: SKETCHES }
         cmd: arduino-cli compile --fqbn {{.BOARD}} --library . --warnings all {{dir .ITEM}}
 
   setup:cores:

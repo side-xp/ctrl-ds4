@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <Arduino.h>
 
 namespace CtrlDS4 {
 
@@ -76,5 +76,67 @@ enum Trigger : uint8_t {
 constexpr uint8_t TRIGGER_MIN = 0;
 /// Value of a fully pressed trigger.
 constexpr uint8_t TRIGGER_MAX = 255;
+
+/// Number of bytes of a MAC address.
+constexpr uint8_t MAC_ADDRESS_SIZE = 6;
+
+/**
+ * @brief MAC address the controller reports to the host.
+ *
+ * Hosts use it to tell controllers apart, so each controller connected to the same host needs its
+ * own address.
+ *
+ * It can be printed directly, as six hexadecimal bytes separated by colons:
+ *
+ * @code
+ * Serial.println(controller.getMacAddress());  // Prints e.g. 02:1A:2B:3C:4D:5E
+ * @endcode
+ */
+struct MacAddress : public Printable {
+  /// Bytes of the address, in the order they are printed.
+  uint8_t bytes[MAC_ADDRESS_SIZE] = {};
+
+  /**
+   * @brief Builds the address 00:00:00:00:00:00.
+   */
+  MacAddress() = default;
+
+  /**
+   * @brief Builds an address from its bytes, in the order they are printed.
+   *
+   * @code
+   * CtrlDS4::MacAddress address(0x02, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E);  // 02:1A:2B:3C:4D:5E
+   * @endcode
+   *
+   * To avoid using the address of a real device, set bit 1 of the first byte (locally
+   * administered address). Keep bit 0 cleared, since it marks multicast addresses, which a device
+   * can't use.
+   *
+   * @param byte0 First byte.
+   * @param byte1 Second byte.
+   * @param byte2 Third byte.
+   * @param byte3 Fourth byte.
+   * @param byte4 Fifth byte.
+   * @param byte5 Last byte.
+   */
+  MacAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5);
+
+  /**
+   * @brief Prints the address as six hexadecimal bytes separated by colons.
+   *
+   * @param output Where to print the address (e.g. Serial).
+   * @return Number of characters printed.
+   */
+  size_t printTo(Print &output) const override;
+};
+
+/**
+ * @brief Where the MAC address of a controller comes from.
+ */
+enum MacAddressSource : uint8_t {
+  MacFromUniqueId,  ///< Derived from the factory unique ID of the board.
+  MacFromSketch,    ///< Set by the sketch with Controller::setMacAddress().
+  MacFallback       ///< Fixed address, used when the board has no usable unique ID.
+};
 
 }  // namespace CtrlDS4

@@ -100,12 +100,48 @@ public:
    */
   void releaseAll();
 
+  /* --- MAC address --- */
+
+  /**
+   * @brief Sets the MAC address reported to the host, instead of the one begin() chooses.
+   *
+   * Call it before begin(), since the host reads the address when the controller connects.
+   *
+   * @param macAddress Address to report. See MacAddress for the bits to set and clear.
+   */
+  void setMacAddress(const MacAddress &macAddress);
+
+  /**
+   * @brief Gets the MAC address reported to the host.
+   *
+   * Unless set with setMacAddress(), it's chosen by begin(): derived from the factory unique ID of
+   * the board, or a fixed fallback address if the board has none.
+   *
+   * @return The MAC address. Only meaningful once begin() has been called, or setMacAddress().
+   */
+  const MacAddress &getMacAddress() const;
+
+  /**
+   * @brief Tells where the MAC address comes from.
+   *
+   * Use it to warn when the board has no usable unique ID, since the fallback address is the same
+   * on all those boards.
+   *
+   * @return Where the address returned by getMacAddress() comes from.
+   */
+  MacAddressSource getMacAddressSource() const;
+
 private:
   /// Set by begin() once initialization has succeeded.
   bool _isReady = false;
 
   /// State of the controls, as set by the setters.
   internal::ControlState _state;
+
+  /// MAC address reported to the host.
+  MacAddress _macAddress;
+  /// Where _macAddress comes from.
+  MacAddressSource _macAddressSource = MacFallback;
 };
 
 }  // namespace CtrlDS4
