@@ -1,7 +1,8 @@
 /**
- * @file CtrlTemplate.h
- * @brief Main header of the CtrlTemplate library.
- * @todo Describe what the library does.
+ * @file CtrlDS4.h
+ * @brief Main header of the CtrlDS4 library.
+ *
+ * Emulates a DualShock 4 controller from boards with native USB, such as the RP2040 or the SAMD21.
  */
 
 #pragma once
@@ -14,20 +15,18 @@
  * Call begin() once from setup(), then update() on every iteration of loop().
  *
  * @code
- * CtrlTemplate ctrlTemplate;
+ * CtrlDS4 ctrlDS4;
  *
  * void setup() {
- *   ctrlTemplate.begin();
+ *   ctrlDS4.begin();
  * }
  *
  * void loop() {
- *   ctrlTemplate.update();
+ *   ctrlDS4.update();
  * }
  * @endcode
- *
- * @todo Rename the class and this file to match the library name.
  */
-class CtrlTemplate {
+class CtrlDS4 {
 public:
   /**
    * @brief Initializes the library.

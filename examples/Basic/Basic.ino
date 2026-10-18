@@ -1,12 +1,12 @@
 /**
  * @file Basic.ino
- * @brief Minimal usage of CtrlTemplate: initialize it once, then update it continuously.
+ * @brief Minimal usage of CtrlDS4: initialize it once, then update it continuously.
  */
 
-#include <CtrlTemplate.h>
+#include <CtrlDS4.h>
 
 /// Library instance driven by setup() and loop().
-CtrlTemplate ctrlTemplate;
+CtrlDS4 ctrlDS4;
 
 /**
  * @brief Runs once at startup.
@@ -16,8 +16,8 @@ CtrlTemplate ctrlTemplate;
 void setup() {
   Serial.begin(9600);
 
-  if (!ctrlTemplate.begin()) {
-    Serial.println(F("CtrlTemplate failed to initialize."));
+  if (!ctrlDS4.begin()) {
+    Serial.println(F("CtrlDS4 failed to initialize."));
   }
 }
 
@@ -25,5 +25,5 @@ void setup() {
  * @brief Runs repeatedly after setup().
  */
 void loop() {
-  ctrlTemplate.update();
+  ctrlDS4.update();
 }

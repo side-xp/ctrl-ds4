@@ -13,3 +13,6 @@ build/
 *.elf
 *.hex
 *.uf2
+
+# Custom
+/res

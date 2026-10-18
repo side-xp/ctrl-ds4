@@ -1,26 +1,30 @@
-# @todo Project title
+# CtrlDS4
 
-> @todo Short summary of what this project does.
+Arduino library to emulate a Sony DualShock 4 (DS4) controller over USB, on boards with native USB such as the *RP2040* and the *SAMD21*.
+
+---
+⚠️ This library is still WIP.
+---
 
 ## Prerequisites
 
 - [Arduino IDE](https://www.arduino.cc/en/software) or [arduino-cli](https://arduino.github.io/arduino-cli/latest/)
-- @todo Supported boards, required hardware and wiring
+- A board with native USB, such as the RP2040 or the SAMD21
 
 ## Install
 
 ### From the Library Manager (recommended)
 
-- **Arduino IDE:** open `Sketch > Include Library > Manage Libraries...`, search for `CtrlTemplate` and click **Install**.
+- **Arduino IDE:** open `Sketch > Include Library > Manage Libraries...`, search for `CtrlDS4` and click **Install**.
 - **arduino-cli:**
 
 ```bash
-arduino-cli lib install CtrlTemplate
+arduino-cli lib install CtrlDS4
 ```
 
 ### From a ZIP file
 
-Download the **Source code (zip)** of the [latest release](https://github.com/hubertgdev/ctrl-template/releases/latest), then:
+Download the **Source code (zip)** of the [latest release](https://github.com/side-xp/ctrl-ds4/releases/latest), then:
 
 - **Arduino IDE:** open `Sketch > Include Library > Add .ZIP Library...` and select the downloaded file.
 - **arduino-cli:**
@@ -36,10 +40,10 @@ arduino-cli lib install --zip-path <downloaded file>.zip
 Include the library in your sketch:
 
 ```cpp
-#include <CtrlTemplate.h>
+#include <CtrlDS4.h>
 ```
 
-See the examples in `File > Examples > CtrlTemplate` in the Arduino IDE, or in the [`examples/`](./examples) folder.
+See the examples in `File > Examples > CtrlDS4` in the Arduino IDE, or in the [`examples/`](./examples) folder.
 
 ## Development
 
@@ -101,3 +105,13 @@ The CI runs on GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/
 > The release adds a commit on the main branch: pull it before merging into the main branch again.
 
 > Once the library is registered in the Library Manager, each new tag is picked up automatically as a new version.
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE.md).
+
+---
+
+Crafted and maintained with love by [Sideways Experiments](https://sideways-experiments.com)
+
+(c) 2022-2026 Sideways Experiments
