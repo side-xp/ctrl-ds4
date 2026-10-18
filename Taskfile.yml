@@ -68,21 +68,21 @@ tasks:
   docs:
     desc: Build the documentation website into extras/docs/site
     cmds:
-      - task: docs:api
+      - task: docs:generate
       - zensical build -f extras/docs/zensical.toml
 
   docs:serve:
-    desc: Preview the documentation website, rebuilt when its pages change (run docs:api again after editing the sources)
+    desc: Preview the documentation website, rebuilt when its pages change (run docs:generate again after editing README.md or the sources)
     cmds:
-      - task: docs:api
+      - task: docs:generate
       - zensical serve -f extras/docs/zensical.toml
 
-  docs:api:
-    desc: Generate the API reference pages from the documentation comments, with Doxygen (pass `-- --doxygen <path>` if it's not in your PATH)
+  docs:generate:
+    desc: Generate the home page of the documentation website from README.md, and the API reference from the sources with Doxygen (pass `-- --doxygen <path>` if it's not in your PATH)
     cmds:
-      - cmd: python scripts/generate_api_docs.py {{.CLI_ARGS}}
+      - cmd: python scripts/generate_docs.py {{.CLI_ARGS}}
         platforms: [windows]
-      - cmd: python3 scripts/generate_api_docs.py {{.CLI_ARGS}}
+      - cmd: python3 scripts/generate_docs.py {{.CLI_ARGS}}
         platforms: [linux, darwin]
 
   setup:cores:
