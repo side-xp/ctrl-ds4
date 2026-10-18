@@ -250,6 +250,8 @@ This project is licensed under the [MIT License](./LICENSE.md).
 
 It includes data from other projects, under their own license: see [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
 
+CtrlDS4 is not affiliated with, endorsed or sponsored by Sony Interactive Entertainment. PlayStation and DualShock are trademarks or registered trademarks of Sony Interactive Entertainment Inc. The library presents the board with the USB identity of a DS4 (vendor and product IDs, names) only so hosts recognize it as one.
+
 ---
 
 Crafted and maintained with love by [Sideways Experiments](https://sideways-experiments.com)
