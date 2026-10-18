@@ -102,6 +102,43 @@ enum AxisHalf : uint8_t {
   Negative   ///< From 0 to -1: left (X) or down (Y).
 };
 
+/// Highest value returned by analogRead() at its default resolution (10 bits).
+constexpr uint16_t ANALOG_READ_MAX = 1023;
+
+/**
+ * @brief Readings of an analog pin that match the ends of a control, for Controller::bindAnalog().
+ *
+ * Sensors and potentiometers rarely reach the ends of the analogRead() range, which would keep the
+ * control from reaching its ends too. Give the readings measured at the ends instead.
+ *
+ * @code
+ * // Potentiometer reading 120 fully left and 900 fully right, ignoring 5% around the center
+ * CtrlDS4::AnalogCalibration calibration(120, 900, 0.05);
+ * controller.bindAnalog(CtrlDS4::LeftStickX, A0, calibration);
+ * @endcode
+ */
+struct AnalogCalibration {
+  /// Reading at the start of the control: released trigger, start of an axis half, or left (X) or
+  /// down (Y) end of a full axis. Can be above maxReading, to invert the control.
+  uint16_t minReading;
+  /// Reading at the end of the control: fully pressed trigger, end of an axis half, or right (X) or
+  /// up (Y) end of a full axis.
+  uint16_t maxReading;
+  /// Part of the control near rest that reads as exactly at rest, from 0 to 1, so the control
+  /// doesn't drift. Around the center for a full axis. The rest of the range is scaled to still
+  /// reach the end.
+  float deadzone;
+
+  /**
+   * @brief Builds a calibration.
+   *
+   * @param minReading Reading at the start of the control (see AnalogCalibration::minReading).
+   * @param maxReading Reading at the end of the control (see AnalogCalibration::maxReading).
+   * @param deadzone Part of the control near rest that reads as exactly at rest, from 0 to 1.
+   */
+  explicit AnalogCalibration(uint16_t minReading = 0, uint16_t maxReading = ANALOG_READ_MAX, float deadzone = 0);
+};
+
 /**
  * @brief Analog triggers of the controller.
  *

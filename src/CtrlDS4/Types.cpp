@@ -2,6 +2,10 @@
 
 namespace CtrlDS4 {
 
+// Builds a calibration.
+AnalogCalibration::AnalogCalibration(uint16_t minReading, uint16_t maxReading, float deadzone)
+  : minReading(minReading), maxReading(maxReading), deadzone(deadzone) {}
+
 // Builds an address from its bytes, in the order they are printed.
 MacAddress::MacAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5)
   : bytes{ byte0, byte1, byte2, byte3, byte4, byte5 } {}

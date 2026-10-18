@@ -120,7 +120,34 @@ When both halves of a stick axis are bound, pressing both buttons together cance
 
 The bound buttons are read on each `update()`, and their contact bounces are filtered: a press is reported at once, then the pin is ignored for 10 ms. If a button reports double presses, increase that time with `controller.setDebounceTime(20)`.
 
-Use `unbind()` to stop driving a control from its pins: `unbind(CtrlDS4::Circle)`, `unbind(CtrlDS4::R2)`, or `unbind(CtrlDS4::LeftStickY)` for both halves of the axis.
+#### Bind controls to analog pins
+
+An analog pin (a potentiometer, a joystick module, a pressure sensor...) can drive a trigger, a whole stick axis, or a half of a stick axis:
+
+```cpp
+controller.bindAnalog(CtrlDS4::R2, A0);                             // 0 to 1
+controller.bindAnalog(CtrlDS4::LeftStickX, A1);                     // Whole axis, -1 to 1
+controller.bindAnalog(CtrlDS4::RightStickX, CtrlDS4::Positive, A2); // Right half, 0 to 1
+controller.bindAnalog(CtrlDS4::RightStickX, CtrlDS4::Negative, A3); // Left half, 0 to -1
+```
+
+By default, the whole `analogRead()` range (`0` to `1023`) covers the control. Sensors and potentiometers rarely reach both ends, and a stick at rest rarely reads exactly its center, so pass a calibration to fix both:
+
+```cpp
+// Reads 120 fully left and 900 fully right, and ignores 5% of the axis around the center
+controller.bindAnalog(CtrlDS4::LeftStickX, A1, CtrlDS4::AnalogCalibration(120, 900, 0.05));
+
+// Inverted: reads 900 fully down and 120 fully up
+controller.bindAnalog(CtrlDS4::LeftStickY, A2, CtrlDS4::AnalogCalibration(900, 120, 0.05));
+```
+
+Print `analogRead()` while moving the control to its ends to find its readings. The deadzone goes from `0` to `1`: within it, the control reads as at rest (around the center for a whole axis), and the rest of the range is scaled to still reach the end.
+
+> The analog pins are only read on the `update()` calls that send a report to the host, since reading them is slow on some boards.
+
+#### Unbind controls
+
+Use `unbind()` to stop driving a control from its pins: `unbind(CtrlDS4::Circle)`, `unbind(CtrlDS4::R2)`, or `unbind(CtrlDS4::LeftStickY)` for a whole axis and both of its halves.
 
 #### Set the controls from the sketch
 

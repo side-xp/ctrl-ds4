@@ -7,16 +7,7 @@
 namespace CtrlDS4 {
 namespace internal {
 
-namespace {
-
-/**
- * @brief Limits a value to a range.
- *
- * @param value Value to limit. NaN reads as 0.
- * @param min Lowest value of the range.
- * @param max Highest value of the range.
- * @return The value, limited to the range.
- */
+// Limits a value to a range.
 float clampValue(float value, float min, float max) {
   if (isnan(value)) {
     return 0;
@@ -29,8 +20,6 @@ float clampValue(float value, float min, float max) {
   }
   return value;
 }
-
-}  // namespace
 
 // Converts a stick axis value to the format of the DS4 report.
 uint8_t toRawStickAxis(float value) {

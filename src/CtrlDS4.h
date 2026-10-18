@@ -228,13 +228,77 @@ public:
    * controller.bind(CtrlDS4::LeftStickY, CtrlDS4::Negative, 6);  // Down while pressed
    * @endcode
    *
-   * @param axis Axis to drive. Ignored if it's not a StickAxis value.
+   * @param axis Axis to drive. Ignored if it's not a StickAxis value. Replaces the analog pin of
+   * the whole axis, if any (see bindAnalog()).
    * @param half Half of the axis the button pushes to. Ignored if it's not an AxisHalf value.
    * Binding it again replaces its previous pin.
    * @param pin Pin the button is wired to.
    * @param wiring How the button is wired to the pin.
    */
   void bind(StickAxis axis, AxisHalf half, uint8_t pin, ButtonWiring wiring = ActiveLow);
+
+  /**
+   * @brief Drives a trigger from an analog pin of the board.
+   *
+   * The trigger follows the reading of the pin: released at AnalogCalibration::minReading, fully
+   * pressed at AnalogCalibration::maxReading. The pin is read on the update() calls that send a
+   * report to the host.
+   *
+   * @code
+   * controller.bindAnalog(CtrlDS4::R2, A0);                                     // Whole range
+   * controller.bindAnalog(CtrlDS4::L2, A1, CtrlDS4::AnalogCalibration(80, 950));  // Calibrated
+   * @endcode
+   *
+   * @param trigger Trigger to drive. Ignored if it's not a Trigger value. Binding it again
+   * replaces its previous pin.
+   * @param pin Analog pin to read.
+   * @param calibration Readings that match the released and fully pressed trigger, and deadzone
+   * near the released trigger. The whole analogRead() range by default.
+   */
+  void bindAnalog(Trigger trigger, uint8_t pin, const AnalogCalibration &calibration = AnalogCalibration());
+
+  /**
+   * @brief Drives a whole stick axis from an analog pin of the board, e.g. a potentiometer.
+   *
+   * The axis follows the reading of the pin: left (X) or down (Y) at AnalogCalibration::minReading,
+   * right (X) or up (Y) at AnalogCalibration::maxReading, and centered halfway. The pin is read on
+   * the update() calls that send a report to the host.
+   *
+   * @code
+   * controller.bindAnalog(CtrlDS4::LeftStickX, A0, CtrlDS4::AnalogCalibration(0, 1023, 0.05));
+   * controller.bindAnalog(CtrlDS4::LeftStickY, A1, CtrlDS4::AnalogCalibration(1023, 0, 0.05));  // Inverted
+   * @endcode
+   *
+   * @param axis Axis to drive. Ignored if it's not a StickAxis value. Replaces the previous pins of
+   * the axis, including the ones of its halves.
+   * @param pin Analog pin to read.
+   * @param calibration Readings that match both ends of the axis, and deadzone around the center.
+   * The whole analogRead() range by default.
+   */
+  void bindAnalog(StickAxis axis, uint8_t pin, const AnalogCalibration &calibration = AnalogCalibration());
+
+  /**
+   * @brief Drives a half of a stick axis from an analog pin of the board, e.g. a pressure sensor.
+   *
+   * The axis follows the reading of the pin, from rest at AnalogCalibration::minReading to the end
+   * of the half at AnalogCalibration::maxReading. Bind the other half to drive the whole axis: the
+   * axis value is the positive half minus the negative half. The pin is read on the update() calls
+   * that send a report to the host.
+   *
+   * @code
+   * controller.bindAnalog(CtrlDS4::RightStickX, CtrlDS4::Positive, A0);  // Pushes right
+   * controller.bindAnalog(CtrlDS4::RightStickX, CtrlDS4::Negative, A1);  // Pushes left
+   * @endcode
+   *
+   * @param axis Axis to drive. Ignored if it's not a StickAxis value. Replaces the analog pin of
+   * the whole axis, if any.
+   * @param half Half of the axis the pin drives. Ignored if it's not an AxisHalf value. Binding it
+   * again replaces its previous pin.
+   * @param pin Analog pin to read.
+   * @param calibration Readings that match rest and the end of the half, and deadzone near rest.
+   * The whole analogRead() range by default.
+   */
+  void bindAnalog(StickAxis axis, AxisHalf half, uint8_t pin, const AnalogCalibration &calibration = AnalogCalibration());
 
   /**
    * @brief Stops driving a trigger from its pin, and releases it.
@@ -246,7 +310,8 @@ public:
   void unbind(Trigger trigger);
 
   /**
-   * @brief Stops driving both halves of a stick axis from their pins, and puts the axis at rest.
+   * @brief Stops driving a stick axis from its pins (whole axis and both halves), and puts the axis
+   * at rest.
    *
    * The mode of the pins is left as is.
    *
@@ -352,8 +417,10 @@ public:
 private:
   /**
    * @brief Sets the bound buttons, triggers and stick axes from their pins.
+   *
+   * @param shouldReadAnalog true to read the analog pins, false to reuse their last values.
    */
-  void readBindings();
+  void readBindings(bool shouldReadAnalog);
 
   /**
    * @brief Applies the rumble and lightbar changes requested by the host, if any.

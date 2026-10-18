@@ -51,13 +51,14 @@ void Controller::update() {
     return;
   }
 
-  readBindings();
+  // Reading analog pins is slow, so they're only read when their values are about to be sent.
+  readBindings(_usbDevice.isReadyToSend());
   applyHostOutput();
   sendInputReport();
 }
 
 // Sets the bound buttons, triggers and stick axes from their pins.
-void Controller::readBindings() {
+void Controller::readBindings(bool shouldReadAnalog) {
   for (uint8_t button = 0; button < internal::BUTTON_COUNT; button++) {
     internal::ButtonBinding &binding = _buttonBindings[button];
     if (binding.isAttached()) {
@@ -68,14 +69,14 @@ void Controller::readBindings() {
   for (uint8_t trigger = 0; trigger < internal::TRIGGER_COUNT; trigger++) {
     internal::AxisHalfInput &binding = _triggerBindings[trigger];
     if (binding.isAttached()) {
-      setTriggerValue(static_cast<Trigger>(trigger), binding.read(_debounceMs));
+      setTriggerValue(static_cast<Trigger>(trigger), binding.read(_debounceMs, shouldReadAnalog));
     }
   }
 
   for (uint8_t axis = 0; axis < internal::STICK_AXIS_COUNT; axis++) {
     internal::StickAxisBinding &binding = _stickAxisBindings[axis];
     if (binding.isAttached()) {
-      setAxis(static_cast<StickAxis>(axis), binding.read(_debounceMs));
+      setAxis(static_cast<StickAxis>(axis), binding.read(_debounceMs, shouldReadAnalog));
     }
   }
 }
@@ -229,7 +230,34 @@ void Controller::bind(StickAxis axis, AxisHalf half, uint8_t pin, ButtonWiring w
     return;
   }
 
-  _stickAxisBindings[axis].getHalf(half).attachButton(pin, wiring);
+  _stickAxisBindings[axis].attachButton(half, pin, wiring);
+}
+
+// Drives a trigger from an analog pin of the board.
+void Controller::bindAnalog(Trigger trigger, uint8_t pin, const AnalogCalibration &calibration) {
+  if (trigger >= internal::TRIGGER_COUNT) {
+    return;
+  }
+
+  _triggerBindings[trigger].attachAnalog(pin, calibration);
+}
+
+// Drives a whole stick axis from an analog pin of the board.
+void Controller::bindAnalog(StickAxis axis, uint8_t pin, const AnalogCalibration &calibration) {
+  if (axis >= internal::STICK_AXIS_COUNT) {
+    return;
+  }
+
+  _stickAxisBindings[axis].attachAnalog(pin, calibration);
+}
+
+// Drives a half of a stick axis from an analog pin of the board.
+void Controller::bindAnalog(StickAxis axis, AxisHalf half, uint8_t pin, const AnalogCalibration &calibration) {
+  if (axis >= internal::STICK_AXIS_COUNT || half >= internal::AXIS_HALF_COUNT) {
+    return;
+  }
+
+  _stickAxisBindings[axis].attachAnalog(half, pin, calibration);
 }
 
 // Stops driving a trigger from its pin, and releases it.
@@ -242,7 +270,7 @@ void Controller::unbind(Trigger trigger) {
   setTrigger(trigger, TRIGGER_MIN);
 }
 
-// Stops driving both halves of a stick axis from their pins, and puts the axis at rest.
+// Stops driving a stick axis from its pins, and puts the axis at rest.
 void Controller::unbind(StickAxis axis) {
   if (axis >= internal::STICK_AXIS_COUNT || !_stickAxisBindings[axis].isAttached()) {
     return;
