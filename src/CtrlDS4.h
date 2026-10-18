@@ -81,7 +81,7 @@ public:
    *
    * Reads the pins of the bound controls, applies the rumble and lightbar changes requested by the
    * host (calling the callbacks set with onRumble(), onLightbarColor() and onLightbarBlink()), then
-   * sends the state of the controls when the host is ready for it.
+   * sends the state of the controls once per report interval (see setReportInterval()).
    *
    * Call on every iteration of loop(), without blocking it for long: the host expects a new report
    * every few milliseconds. Does nothing until begin() has succeeded.
@@ -94,6 +94,18 @@ public:
    * @return true once begin() has completed successfully, false otherwise.
    */
   bool isReady() const;
+
+  /**
+   * @brief Sets how often update() sends the state of the controls to the host.
+   *
+   * The host polls the controller every millisecond, so a report reaches it at most 1 ms after
+   * update() sends it.
+   *
+   * @param intervalMs Time between two reports in milliseconds, DEFAULT_REPORT_INTERVAL_MS until
+   * set. Lower it for less latency, at the cost of more USB traffic. 0 sends a report at every poll
+   * of the host.
+   */
+  void setReportInterval(uint16_t intervalMs);
 
   /* --- Controls --- */
 
@@ -430,7 +442,15 @@ private:
   void applyHostOutput();
 
   /**
-   * @brief Sends the state of the controls to the host, if it's ready for it.
+   * @brief Tells whether update() should send the state of the controls now.
+   *
+   * @return true if the report interval has elapsed since the last report and the host is ready
+   * for a new one, false otherwise.
+   */
+  bool isReportDue();
+
+  /**
+   * @brief Sends the state of the controls to the host. Call only when isReportDue() is true.
    */
   void sendInputReport();
 
@@ -456,6 +476,8 @@ private:
 
   /// USB connection to the host.
   internal::UsbDevice _usbDevice;
+  /// Time between two input reports, in milliseconds.
+  uint16_t _reportIntervalMs = DEFAULT_REPORT_INTERVAL_MS;
   /// Number of the next input report, which the host uses to detect lost reports.
   uint8_t _reportCounter = 0;
   /// Value of micros() when the last input report was built.

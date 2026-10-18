@@ -21,8 +21,10 @@ const char MANUFACTURER_NAME[] = "Sony Interactive Entertainment";
 /// Product name reported by a real DS4.
 const char PRODUCT_NAME[] = "Wireless Controller";
 
-/// Time between two input reports requested from the host: 250 Hz, the rate of a real DS4 over USB.
-constexpr uint8_t POLL_INTERVAL_MS = 4;
+/// Time between two polls of the host, the shortest USB allows. A report waits at most this long
+/// before the host reads it, and Controller sets the report rate itself (see
+/// Controller::setReportInterval()).
+constexpr uint8_t POLL_INTERVAL_MS = 1;
 
 /// How long the board stays disconnected while reconnecting, so the host notices it.
 constexpr uint32_t RECONNECTION_DELAY_MS = 10;

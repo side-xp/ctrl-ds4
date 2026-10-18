@@ -60,6 +60,10 @@ enum ButtonWiring : uint8_t {
 /// buttons (see Controller::setDebounceTime()).
 constexpr uint16_t DEFAULT_DEBOUNCE_MS = 10;
 
+/// Default time between two input reports sent to the host, in milliseconds: the rate of a real DS4
+/// over USB (see Controller::setReportInterval()).
+constexpr uint16_t DEFAULT_REPORT_INTERVAL_MS = 4;
+
 /**
  * @brief Analog sticks of the controller.
  *

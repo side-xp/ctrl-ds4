@@ -52,9 +52,12 @@ void Controller::update() {
   }
 
   // Reading analog pins is slow, so they're only read when their values are about to be sent.
-  readBindings(_usbDevice.isReadyToSend());
+  bool shouldSendReport = isReportDue();
+  readBindings(shouldSendReport);
   applyHostOutput();
-  sendInputReport();
+  if (shouldSendReport) {
+    sendInputReport();
+  }
 }
 
 // Sets the bound buttons, triggers and stick axes from their pins.
@@ -108,12 +111,16 @@ void Controller::applyHostOutput() {
   }
 }
 
-// Sends the state of the controls to the host, if it's ready for it.
-void Controller::sendInputReport() {
-  if (!_usbDevice.isReadyToSend()) {
-    return;
-  }
+// Tells whether update() should send the state of the controls now.
+bool Controller::isReportDue() {
+  // The unsigned difference stays correct when micros() wraps around.
+  uint32_t elapsedMicros = micros() - _lastReportMicros;
+  uint32_t intervalMicros = static_cast<uint32_t>(_reportIntervalMs) * 1000;
+  return elapsedMicros >= intervalMicros && _usbDevice.isReadyToSend();
+}
 
+// Sends the state of the controls to the host.
+void Controller::sendInputReport() {
   // The unsigned difference stays correct when micros() wraps around.
   uint32_t nowMicros = micros();
   _elapsedMicros += nowMicros - _lastReportMicros;
@@ -130,6 +137,11 @@ void Controller::sendInputReport() {
 // Returns true once begin() has completed successfully.
 bool Controller::isReady() const {
   return _isReady;
+}
+
+// Sets how often update() sends the state of the controls to the host.
+void Controller::setReportInterval(uint16_t intervalMs) {
+  _reportIntervalMs = intervalMs;
 }
 
 // Presses or releases a button.

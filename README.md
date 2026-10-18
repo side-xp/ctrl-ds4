@@ -88,6 +88,8 @@ Upload the sketch: the board now shows up on the host as a *Wireless Controller*
 
 Call `update()` on every iteration of `loop()`, and avoid blocking `loop()` for long (e.g. with `delay()`): the host expects a new report every few milliseconds.
 
+By default, `update()` sends a report every 4 ms, as a real DS4 does. Change that with `controller.setReportInterval()`, e.g. `controller.setReportInterval(1)` for a report every millisecond, at the cost of more USB traffic.
+
 See the examples in `File > Examples > CtrlDS4` in the Arduino IDE, or in the [`examples/`](./examples) folder.
 
 > Declare a single `Controller` per sketch: the board presents itself as one DS4.
