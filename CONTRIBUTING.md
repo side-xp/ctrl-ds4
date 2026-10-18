@@ -15,7 +15,9 @@ At Sideways Experiments, we hate doing the same thing more than once, and we lov
 | [arduino-cli](https://arduino.github.io/arduino-cli/latest/) | Compiling the examples. | [Installation guide](https://arduino.github.io/arduino-cli/latest/installation/) |
 | [clang-format](https://clang.llvm.org/docs/ClangFormat.html) 14 or later | Formatting the code. | `pip install clang-format`, or with [LLVM](https://github.com/llvm/llvm-project/releases) |
 | [arduino-lint](https://arduino.github.io/arduino-lint/latest/) | Checking the library structure and metadata. | Download the archive for your system from the [releases](https://github.com/arduino/arduino-lint/releases), extract it outside the project and add that folder to your `PATH` |
-| [Python](https://www.python.org) 3.8 or later | Optional, VS Code setup only. | [Downloads](https://www.python.org/downloads/) |
+| [Python](https://www.python.org) 3.8 or later (3.14 or later for the documentation) | Optional: VS Code setup, and documentation website. | [Downloads](https://www.python.org/downloads/) |
+| [Doxygen](https://www.doxygen.nl) | Optional: reading the documentation comments for the documentation website. | [Downloads](https://www.doxygen.nl/download.html) (`winget install DimitriVanHeesch.Doxygen` on Windows) |
+| [Sideways Experiments theme](https://github.com/side-xp/py-zensical-theme) for [Zensical](https://zensical.org) | Optional: building the documentation website. | `pip install --upgrade git+https://github.com/side-xp/py-zensical-theme`, which installs Zensical too (run it again to update the theme) |
 
 > The [Arduino IDE](https://www.arduino.cc/en/software) is not required for development, but it's the best way to test the library the way users will install it.
 
@@ -46,6 +48,23 @@ Use `task format` to fix the formatting, and `task --list` to see all the availa
 The compilation covers the [`examples/`](./examples) and the test sketches of [`extras/tests/`](./extras/tests). The test sketches are hardware checks for the development of the library: the Arduino IDE doesn't list them as examples.
 
 A sketch that needs hardware only SAMD boards have goes in `SAMD_ONLY_SKETCHES` in [`Taskfile.yml`](./Taskfile.yml), so it's skipped for the other boards. A library a sketch needs besides CtrlDS4 goes in `SKETCH_LIBRARIES`.
+
+### Documentation
+
+The documentation website is built with Zensical from [`extras/docs/pages/`](./extras/docs/pages):
+
+- The guides are written by hand, in [`guides/`](./extras/docs/pages/guides).
+- The home page is generated from the [`README.md`](./README.md). Wrap the parts shown only on GitHub between `<!-- docs:remove:start -->` and `<!-- docs:remove:end -->` lines, and comment out the parts shown only on the website between `<!-- docs:only:start` and `docs:only:end -->` lines.
+- The API reference is generated from the documentation comments of [`src/`](./src), by [`scripts/generate_docs.py`](./scripts/generate_docs.py) with Doxygen.
+
+```bash
+# Preview the website at http://localhost:8000
+# (run `task docs:generate` again after editing README.md or the sources)
+task docs:serve
+
+# Build the website in extras/docs/site
+task docs
+```
 
 ## Get involved!
 
@@ -112,9 +131,11 @@ Common types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`.
 The CI runs on GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)), with the same tools as for local development:
 
 - **Push on `dev` or `develop`:** runs `task check`.
-- **Push on `main` or `master`:** runs `task check`, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
+- **Push on `main` or `master`:** runs `task check`, and builds the documentation website with `task docs`, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
   - sets the new version in [`library.properties`](./library.properties), commits it and tags that commit with the version (e.g. `0.2.0`, without a `v` prefix)
   - creates a GitHub release, with notes generated from the commits
+  - deploys the documentation website to GitHub Pages
+- **Manual run** (**Actions** tab, **CI** workflow, **Run workflow**): runs `task check` and builds the documentation website, without releasing. On the default branch, it also deploys the website, e.g. to publish a documentation change that doesn't trigger a release (`docs`, `chore`...).
 
 > The release adds a commit on the main branch: pull it before merging into the main branch again.
 

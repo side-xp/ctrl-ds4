@@ -1,0 +1,30 @@
+# Doxygen only parses the documentation comments of the sources here: it writes them as XML, which
+# scripts/generate_docs.py converts to the Markdown pages of the API reference. The options
+# left out keep their default value (see https://www.doxygen.nl/manual/config.html).
+#
+# Paths are relative to the repository root, where generate_docs.py runs Doxygen.
+
+PROJECT_NAME           = CtrlDS4
+
+# --- Input ---
+
+INPUT                  = src
+RECURSIVE              = YES
+# The documentation comments are on the declarations, so the .cpp files would add nothing.
+FILE_PATTERNS          = *.h
+# Implementation details, hidden from the sketches.
+EXCLUDE_SYMBOLS        = CtrlDS4::internal
+
+# --- Output ---
+
+OUTPUT_DIRECTORY       = build/doxygen
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+GENERATE_XML           = YES
+# The converter only needs the declarations, not the source code listings.
+XML_PROGRAMLISTING     = NO
+
+# --- Messages ---
+
+QUIET                  = YES
+WARN_NO_PARAMDOC       = YES

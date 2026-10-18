@@ -14,5 +14,10 @@ build/
 *.hex
 *.uf2
 
+# Documentation website, and its pages generated from README.md and the sources
+extras/docs/site/
+extras/docs/pages/index.md
+extras/docs/pages/api/
+
 # Custom
 /res
