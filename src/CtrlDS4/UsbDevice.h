@@ -49,6 +49,9 @@ public:
   /**
    * @brief Sends an input report to the host.
    *
+   * The report is also kept for the hosts that request the latest one, rather than waiting for the
+   * next one.
+   *
    * @param report Report to send.
    * @return true if the report was queued, false if the host is not ready (see isReadyToSend()).
    */

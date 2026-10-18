@@ -7,9 +7,6 @@ namespace internal {
 
 namespace {
 
-/// First byte of the report, telling the host which report this is.
-constexpr uint8_t INPUT_REPORT_ID = 0x01;
-
 /// Position of the report counter in buttons[2], above the PS and Touchpad bits.
 constexpr uint8_t COUNTER_SHIFT = 2;
 /// Bits of the counter kept in the report.

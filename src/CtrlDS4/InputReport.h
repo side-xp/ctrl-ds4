@@ -14,6 +14,9 @@
 namespace CtrlDS4 {
 namespace internal {
 
+/// Report ID of the input report, its first byte.
+constexpr uint8_t INPUT_REPORT_ID = 0x01;
+
 /**
  * @brief Finger on the touchpad.
  */

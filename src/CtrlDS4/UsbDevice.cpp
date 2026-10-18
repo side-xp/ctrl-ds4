@@ -1,5 +1,7 @@
 #include "UsbDevice.h"
 
+#include <string.h>
+
 #include "FeatureReports.h"
 #include "HidDescriptor.h"
 
@@ -32,16 +34,37 @@ constexpr uint32_t RECONNECTION_DELAY_MS = 10;
 /// MAC address reported in the feature reports, set by UsbDevice::begin().
 MacAddress reportedMacAddress;
 
+/// Latest input report sent to the host, for the hosts that request it. Only written with interrupts disabled.
+InputReport lastInputReport;
+
 /**
- * @brief Answers a report request of the host. Called by TinyUSB.
+ * @brief Copies the content of the latest input report, after its report ID.
+ *
+ * @param buffer Buffer receiving the content.
+ * @param size Size of the buffer in bytes. A longer content is cut to fit.
+ * @return Number of bytes copied.
+ */
+uint16_t copyLastInputReport(uint8_t *buffer, uint16_t size) {
+  const uint8_t *content = reinterpret_cast<const uint8_t *>(&lastInputReport) + sizeof(lastInputReport.reportId);
+  uint16_t contentSize = sizeof(lastInputReport) - sizeof(lastInputReport.reportId);
+  uint16_t copiedSize = contentSize < size ? contentSize : size;
+  memcpy(buffer, content, copiedSize);
+  return copiedSize;
+}
+
+/**
+ * @brief Answers a report request of the host. Called by TinyUSB, possibly during an interrupt.
  *
  * @param reportId ID of the requested report.
- * @param reportType Type of the requested report. Only feature reports are answered.
+ * @param reportType Type of the requested report. Only input and feature reports are answered.
  * @param buffer Buffer receiving the content of the report, after the report ID.
  * @param requestedSize Size of the buffer in bytes.
  * @return Number of bytes written, or 0 if the controller has no such report.
  */
 uint16_t onGetReport(uint8_t reportId, hid_report_type_t reportType, uint8_t *buffer, uint16_t requestedSize) {
+  if (reportType == HID_REPORT_TYPE_INPUT && reportId == INPUT_REPORT_ID) {
+    return copyLastInputReport(buffer, requestedSize);
+  }
   if (reportType != HID_REPORT_TYPE_FEATURE) {
     return 0;
   }
@@ -86,6 +109,8 @@ void onSetReport(uint8_t reportId, hid_report_type_t reportType, uint8_t const *
 // Adds the DS4 interface to the USB device, and reconnects to the host so it sees it.
 bool UsbDevice::begin(const MacAddress &macAddress) {
   reportedMacAddress = macAddress;
+  // Until the first report is sent, the hosts that request one get the controller at rest.
+  buildInputReport(ControlState(), 0, 0, lastInputReport);
 
   TinyUSBDevice.setID(SONY_VENDOR_ID, DS4_PRODUCT_ID);
   TinyUSBDevice.setDeviceVersion(DS4_DEVICE_VERSION);
@@ -117,7 +142,15 @@ bool UsbDevice::isReadyToSend() {
 // Sends an input report to the host.
 bool UsbDevice::sendInputReport(const InputReport &report) {
   // The report already starts with its ID, so it's sent as is (report ID 0 adds nothing before it).
-  return _hid.sendReport(0, &report, sizeof(report));
+  if (!_hid.sendReport(0, &report, sizeof(report))) {
+    return false;
+  }
+
+  // Keeps onGetReport() from reading the report while it's copied.
+  noInterrupts();
+  lastInputReport = report;
+  interrupts();
+  return true;
 }
 
 // Gets the rumble and lightbar state requested by the host, if it changed it.
