@@ -1,0 +1,66 @@
+# See https://taskfile.dev, run `task --list` for the available tasks.
+version: '3'
+
+vars:
+  # @todo Adjust to the architectures supported by the library.
+  # The Uno (8-bit AVR) and Uno R4 (32-bit ARM) catch most issues tied to type sizes or memory.
+  BOARDS: arduino:avr:uno arduino:renesas_uno:minima
+  # @todo Switch to `update` once the library is registered in the Library Manager.
+  LIBRARY_MANAGER_MODE: submit
+  # Tracked and new files, without the ignored ones (such as build outputs).
+  SOURCES:
+    sh: git ls-files --cached --others --exclude-standard -- '*.c' '*.cpp' '*.h' '*.hpp' '*.ino'
+  EXAMPLES:
+    sh: git ls-files --cached --others --exclude-standard -- 'examples/*.ino'
+
+tasks:
+  check:
+    desc: Run all the checks (formatting, lint, compilation)
+    cmds:
+      - task: check:format
+      - task: lint
+      - task: compile
+
+  format:
+    desc: Format the sources with clang-format
+    cmds:
+      - clang-format -i {{catLines .SOURCES}}
+
+  check:format:
+    desc: Check that the sources are formatted
+    cmds:
+      - clang-format --dry-run --Werror {{catLines .SOURCES}}
+
+  lint:
+    desc: Check the library structure and metadata, as the Library Manager does
+    cmds:
+      - arduino-lint --compliance strict --library-manager {{.LIBRARY_MANAGER_MODE}} --project-type library
+
+  compile:
+    desc: Compile the examples for each board of BOARDS
+    cmds:
+      - for: { var: BOARDS }
+        task: compile:board
+        vars: { BOARD: '{{.ITEM}}' }
+
+  compile:board:
+    internal: true
+    cmds:
+      - for: { var: EXAMPLES }
+        cmd: arduino-cli compile --fqbn {{.BOARD}} --library . --warnings all {{dir .ITEM}}
+
+  setup:cores:
+    desc: Install the cores of the boards of BOARDS
+    cmds:
+      - arduino-cli core update-index
+      # The core is the FQBN without its board part (arduino:avr:uno -> arduino:avr).
+      - for: { var: BOARDS }
+        cmd: arduino-cli core install {{.ITEM | splitList ":" | initial | join ":"}}
+
+  setup:editor:
+    desc: Generate the compilation database used by VS Code (pass `-- --fqbn <board>` for another board)
+    cmds:
+      - cmd: python scripts/setup_editor.py {{.CLI_ARGS}}
+        platforms: [windows]
+      - cmd: python3 scripts/setup_editor.py {{.CLI_ARGS}}
+        platforms: [linux, darwin]

@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev, develop]
+
+permissions:
+  contents: read
+
+env:
+  ARDUINO_LINT_VERSION: 1.3.0
+  # Pinned, so a new clang-format release can't change the result of the formatting check.
+  CLANG_FORMAT_VERSION: 18.1.8
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Task
+        uses: arduino/setup-task@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install arduino-cli
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install clang-format
+        run: pipx install "clang-format==${CLANG_FORMAT_VERSION}"
+
+      # Installed outside the workspace: arduino-lint fails if the project contains executables.
+      - name: Install arduino-lint
+        run: |
+          mkdir -p "${RUNNER_TEMP}/arduino-lint"
+          curl -fsSL "https://github.com/arduino/arduino-lint/releases/download/${ARDUINO_LINT_VERSION}/arduino-lint_${ARDUINO_LINT_VERSION}_Linux_64bit.tar.gz" \
+            | tar -xz -C "${RUNNER_TEMP}/arduino-lint"
+          echo "${RUNNER_TEMP}/arduino-lint" >> "${GITHUB_PATH}"
+
+      - name: Install board cores
+        run: task setup:cores
+
+      - name: Check
+        run: task check
+
+  release:
+    needs: check
+    if: github.ref_name == 'main' || github.ref_name == 'master'
+    runs-on: ubuntu-latest
+    permissions:
+      # Push the version commit and tag, and create the GitHub release.
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # semantic-release needs the whole history and the tags to find the next version.
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # Configured in .releaserc.json.
+      - name: Release
+        run: npx --yes -p semantic-release@25 -p @semantic-release/exec@7 -p @semantic-release/git@11 semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
