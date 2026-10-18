@@ -7,10 +7,6 @@ Arduino library to emulate a Sony DualShock 4 (DS4) controller over USB, on boar
 > We will refine this package and its usage over time.
 ---
 
----
-⚠️ This library is still WIP.
----
-
 ## Prerequisites
 
 - [Arduino IDE](https://www.arduino.cc/en/software) or [arduino-cli](https://arduino.github.io/arduino-cli/latest/)
@@ -68,74 +64,123 @@ arduino-cli lib install --zip-path <downloaded file>.zip
 
 ## Usage
 
-Include the library in your sketch:
+### Quick start
+
+Wire a push button between pin `D2` and `GND`, and another between pin `D3` and `GND`. No resistor is needed: the library enables the internal pull-up resistors of the pins.
 
 ```cpp
 #include <CtrlDS4.h>
+
+CtrlDS4::Controller controller;
+
+void setup() {
+  controller.bind(CtrlDS4::Cross, 2);
+  controller.bind(CtrlDS4::Circle, 3);
+  controller.begin();
+}
+
+void loop() {
+  controller.update();
+}
 ```
+
+Upload the sketch: the board now shows up on the host as a *Wireless Controller*, and the buttons drive Cross and Circle.
+
+Call `update()` on every iteration of `loop()`, and avoid blocking `loop()` for long (e.g. with `delay()`): the host expects a new report every few milliseconds.
 
 See the examples in `File > Examples > CtrlDS4` in the Arduino IDE, or in the [`examples/`](./examples) folder.
 
-## Development
+> Declare a single `Controller` per sketch: the board presents itself as one DS4.
 
-### Requirements
+### Controls
 
-| Tool | Used for | Install |
-| --- | --- | --- |
-| [Git](https://git-scm.com) | Version control, listing the sources to check. | [Downloads](https://git-scm.com/downloads) |
-| [Task](https://taskfile.dev) | Running the dev commands of [`Taskfile.yml`](./Taskfile.yml). | [Installation guide](https://taskfile.dev/installation/) (`winget install Task.Task` on Windows) |
-| [arduino-cli](https://arduino.github.io/arduino-cli/latest/) | Compiling the examples. | [Installation guide](https://arduino.github.io/arduino-cli/latest/installation/) |
-| [clang-format](https://clang.llvm.org/docs/ClangFormat.html) 14 or later | Formatting the code. | `pip install clang-format`, or with [LLVM](https://github.com/llvm/llvm-project/releases) |
-| [arduino-lint](https://arduino.github.io/arduino-lint/latest/) | Checking the library structure and metadata. | Download the archive for your system from the [releases](https://github.com/arduino/arduino-lint/releases), extract it outside the project and add that folder to your `PATH` |
-| [Python](https://www.python.org) 3.8 or later | Optional, VS Code setup only. | [Downloads](https://www.python.org/downloads/) |
+The controls are named after the DS4 ones:
 
-> The [Arduino IDE](https://www.arduino.cc/en/software) is not required for development, but it's the best way to test the library the way users will install it.
+| Type | Values |
+| --- | --- |
+| `CtrlDS4::Button` | `Cross`, `Circle`, `Square`, `Triangle`, `L1`, `R1`, `L3`, `R3`, `Share`, `Options`, `PS`, `Touchpad`, `DPadUp`, `DPadDown`, `DPadLeft`, `DPadRight` |
+| `CtrlDS4::Stick` | `LeftStick`, `RightStick` |
+| `CtrlDS4::Trigger` | `L2`, `R2` |
 
-### Setup
+The D-pad directions are buttons, so they can be bound to pins like the others. Opposite directions pressed together cancel each other.
 
-```bash
-# Install the board cores used to compile the examples
-task setup:cores
+#### Bind buttons to pins
 
-# Optional, for VS Code: let the C/C++ extension resolve the Arduino includes
-# (run again after adding an example or a new #include)
-task setup:editor
+```cpp
+controller.bind(CtrlDS4::Cross, 2);                        // Button between pin 2 and GND
+controller.bind(CtrlDS4::Circle, 3, CtrlDS4::ActiveHigh);  // Button between pin 3 and 3.3V
+controller.unbind(CtrlDS4::Circle);                        // Stop driving Circle from its pin
 ```
 
-### Checks
+The bound buttons are read on each `update()`, and their contact bounces are filtered: a press is reported at once, then the pin is ignored for 10 ms. If a button reports double presses, increase that time with `controller.setDebounceTime(20)`.
 
-Run all the checks (formatting, lint, compilation) before pushing:
+#### Set the controls from the sketch
 
-```bash
-task check
+For anything that is not a button wired to a pin (an analog stick, a sensor, a value computed by the sketch...), set the controls directly:
+
+```cpp
+controller.setButton(CtrlDS4::Square, true);                // Press Square
+controller.setStick(CtrlDS4::LeftStick, 255, 128);          // Push the left stick fully right
+controller.setTrigger(CtrlDS4::R2, 128);                    // Press R2 halfway
+controller.releaseAll();                                    // Put all the controls at rest
 ```
 
-Use `task format` to fix the formatting, and `task --list` to see all the available commands.
+The stick axes and the triggers go from `0` to `255`. A stick at rest is at `CtrlDS4::STICK_CENTER` (`128`) on both axes: X goes from left to right, and Y from up to down, as on a real DS4.
 
-## Commit conventions
+> A bound button follows its pin: calling `setButton()` on it has no lasting effect.
 
-This project uses [Conventional Commits](https://www.conventionalcommits.org):
+### Rumble and lightbar
 
+The host can drive the rumble motors and the lightbar of the controller. Read their latest state at any time, or register functions to call when they change:
+
+```cpp
+void onRumble(uint8_t strongMotor, uint8_t weakMotor) {
+  analogWrite(MOTOR_PIN, strongMotor);
+}
+
+void setup() {
+  controller.onRumble(onRumble);
+  controller.begin();
+}
+
+void loop() {
+  controller.update();
+  CtrlDS4::LightbarColor color = controller.getLightbarColor();
+  // ...
+}
 ```
-<type>(<optional scope>): <short description>
+
+The callbacks are called from `update()`, so they can safely drive pins or print to `Serial`. See the [`RumbleAndLightbar`](./examples/RumbleAndLightbar/RumbleAndLightbar.ino) example for all of them.
+
+### MAC address
+
+Hosts tell controllers apart with their MAC address. The library derives a unique one from the factory ID of the board, so each board gets its own address with nothing to set up.
+
+If a board has no usable factory ID (some RP2040 clone boards), `controller.getMacAddressSource()` returns `CtrlDS4::MacFallback`, and all such boards share the same address. Set one per board before `begin()` in that case:
+
+```cpp
+controller.setMacAddress(CtrlDS4::MacAddress(0x02, 0x00, 0x00, 0x00, 0x00, 0x2A));
 ```
 
-Common types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`.
+### Compatibility
 
-> **Why this matters:** `semantic-release` reads the commit history to determine the next version number and generate the changelog. A `feat` triggers a minor bump, a `fix` triggers a patch, and a `BREAKING CHANGE` footer triggers a major bump.
+| Host | Status |
+| --- | --- |
+| Windows (generic gamepad, browsers) | Tested |
+| Linux, Android | Expected to work, not tested yet |
+| Steam | Expected to work, not tested yet |
+| PS4, PS5 | Not supported: the consoles authenticate genuine controllers |
 
-## CI/CD
+Only the USB connection is supported, not Bluetooth.
 
-The CI runs on GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)), with the same tools as for local development:
+### Troubleshooting
 
-- **Push on `dev` or `develop`:** runs `task check`.
-- **Push on `main` or `master`:** runs `task check`, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
-  - sets the new version in [`library.properties`](./library.properties), commits it and tags that commit with the version
-  - creates a GitHub release, with notes generated from the commits
+- **The upload fails, or the port of the board is gone:** once the sketch runs, the board presents itself with the identity of a DS4, so its serial port changes. Put the board in bootloader mode, then upload again: on the XIAO SAMD21, short the two `RST` pads twice quickly. On the XIAO RP2040, hold `BOOT` while plugging it in.
+- **The Serial Monitor shows nothing after a reset:** `begin()` briefly disconnects the board, so the host sees it again as a DS4. Open the Serial Monitor after `begin()`, or reopen it.
 
-> The release adds a commit on the main branch: pull it before merging into the main branch again.
+## Contributing
 
-> Once the library is registered in the Library Manager, each new tag is picked up automatically as a new version.
+Bug reports, ideas and contributions are welcome: see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get involved, and for the developer setup.
 
 ## License
 
