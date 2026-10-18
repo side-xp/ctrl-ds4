@@ -41,6 +41,9 @@ jobs:
       - name: Install board cores
         run: task setup:cores
 
+      - name: Install sketch libraries
+        run: task setup:libraries
+
       - name: Check
         run: task check
 

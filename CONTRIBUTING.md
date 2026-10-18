@@ -25,6 +25,9 @@ At Sideways Experiments, we hate doing the same thing more than once, and we lov
 # Install the board cores used to compile the examples
 task setup:cores
 
+# Install the libraries some examples need besides CtrlDS4
+task setup:libraries
+
 # Optional, for VS Code: let the C/C++ extension resolve the Arduino includes
 # (run again after adding an example or a new #include)
 task setup:editor
@@ -41,6 +44,8 @@ task check
 Use `task format` to fix the formatting, and `task --list` to see all the available commands.
 
 The compilation covers the [`examples/`](./examples) and the test sketches of [`extras/tests/`](./extras/tests). The test sketches are hardware checks for the development of the library: the Arduino IDE doesn't list them as examples.
+
+A sketch that needs hardware only SAMD boards have goes in `SAMD_ONLY_SKETCHES` in [`Taskfile.yml`](./Taskfile.yml), so it's skipped for the other boards. A library a sketch needs besides CtrlDS4 goes in `SKETCH_LIBRARIES`.
 
 ## Get involved!
 
