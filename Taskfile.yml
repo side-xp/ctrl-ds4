@@ -2,9 +2,11 @@
 version: '3'
 
 vars:
-  # @todo Adjust to the architectures supported by the library.
-  # The Uno (8-bit AVR) and Uno R4 (32-bit ARM) catch most issues tied to type sizes or memory.
-  BOARDS: arduino:avr:uno arduino:renesas_uno:minima
+  # One board per supported architecture (see `architectures` in library.properties), using the
+  # Adafruit TinyUSB stack the library relies on.
+  BOARDS: Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb rp2040:rp2040:seeed_xiao_rp2040:usbstack=tinyusb
+  # Board manager indexes of the third-party cores of BOARDS, comma-separated.
+  BOARD_MANAGER_URLS: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json,https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
   # @todo Switch to `update` once the library is registered in the Library Manager.
   LIBRARY_MANAGER_MODE: submit
   # Tracked and new files, without the ignored ones (such as build outputs).
@@ -52,10 +54,10 @@ tasks:
   setup:cores:
     desc: Install the cores of the boards of BOARDS
     cmds:
-      - arduino-cli core update-index
-      # The core is the FQBN without its board part (arduino:avr:uno -> arduino:avr).
+      - arduino-cli core update-index --additional-urls {{.BOARD_MANAGER_URLS}}
+      # The core is the first two parts of the FQBN (Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb -> Seeeduino:samd).
       - for: { var: BOARDS }
-        cmd: arduino-cli core install {{.ITEM | splitList ":" | initial | join ":"}}
+        cmd: arduino-cli core install {{slice (splitList ":" .ITEM) 0 2 | join ":"}} --additional-urls {{.BOARD_MANAGER_URLS}}
 
   setup:editor:
     desc: Generate the compilation database used by VS Code (pass `-- --fqbn <board>` for another board)

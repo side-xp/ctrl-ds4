@@ -3,13 +3,44 @@
 Arduino library to emulate a Sony DualShock 4 (DS4) controller over USB, on boards with native USB such as the *RP2040* and the *SAMD21*.
 
 ---
+> 🤖 This package has mostly been implemented using AI coding assistant. You can expect some questionable implementation or use cases that are not covered yet.
+> We will refine this package and its usage over time.
+---
+
+---
 ⚠️ This library is still WIP.
 ---
 
 ## Prerequisites
 
 - [Arduino IDE](https://www.arduino.cc/en/software) or [arduino-cli](https://arduino.github.io/arduino-cli/latest/)
-- A board with native USB, such as the RP2040 or the SAMD21
+- A supported board, with its core installed and the **TinyUSB** USB stack selected
+
+### Supported boards
+
+| Board | Core | Board manager URL | FQBN |
+| --- | --- | --- | --- |
+| Seeed XIAO SAMD21 | [Seeed SAMD Boards](https://github.com/Seeed-Studio/ArduinoCore-samd) | `https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json` | `Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb` |
+| Seeed XIAO RP2040 | [Raspberry Pi Pico/RP2040](https://github.com/earlephilhower/arduino-pico) (Earle Philhower) | `https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json` | `rp2040:rp2040:seeed_xiao_rp2040:usbstack=tinyusb` |
+
+> Other boards of these cores should work too, as long as they use the TinyUSB stack, but they are not tested.
+
+> The official Arduino SAMD and Arduino Mbed RP2040 cores are not supported: their USB stack doesn't let the library present itself as a DS4 controller.
+
+### Board setup
+
+- **Arduino IDE:**
+  1. Open `File > Preferences...` and add the board manager URL of your board to **Additional boards manager URLs**.
+  2. Open `Tools > Board > Boards Manager...`, search for the core and click **Install**.
+  3. Select your board in `Tools > Board`, then select `Tools > USB Stack > TinyUSB` (SAMD21) or `Tools > USB Stack > Adafruit TinyUSB` (RP2040).
+- **arduino-cli:** install the core, then compile and upload with the FQBN of your board, which includes the USB stack option:
+
+```bash
+arduino-cli core install Seeeduino:samd --additional-urls <board manager URL>
+arduino-cli compile --fqbn Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb <sketch>
+```
+
+> The Adafruit TinyUSB library is bundled with both cores, in a version that matches the core. Don't install it from the Library Manager: that copy would be used instead, and may not match.
 
 ## Install
 
