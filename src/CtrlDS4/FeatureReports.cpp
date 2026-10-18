@@ -199,7 +199,10 @@ uint16_t buildFeatureReport(uint8_t reportId, const MacAddress &macAddress, uint
     case FIRMWARE_INFO_REPORT_ID:
       return copyReport(makeFirmwareInfoReport(), buffer, size);
     default:
-      return 0;
+      // The descriptor declares many more reports, as a real DS4 does. Hosts may read them, and
+      // could give up on a controller that doesn't answer.
+      memset(buffer, 0, size);
+      return size;
   }
 }
 

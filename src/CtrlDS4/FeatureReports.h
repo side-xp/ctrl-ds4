@@ -35,7 +35,8 @@ constexpr uint8_t FIRMWARE_INFO_REPORT_ID = 0xA3;
  * @param macAddress MAC address of the controller.
  * @param buffer Buffer receiving the content of the report.
  * @param size Size of the buffer in bytes. A longer report is cut to fit.
- * @return Number of bytes written, or 0 if the controller has no report with that ID.
+ * @return Number of bytes written. The reports the library has no content for are filled with
+ * zeros, on the whole buffer.
  */
 uint16_t buildFeatureReport(uint8_t reportId, const MacAddress &macAddress, uint8_t *buffer, uint16_t size);
 

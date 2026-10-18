@@ -13,11 +13,10 @@ namespace internal {
 /**
  * @brief Describes the reports of the controller to the host.
  *
- * The input and output reports are declared as on a real DS4, so hosts that only rely on the
- * descriptor (e.g. the generic HID gamepad support of Windows) read them the same way.
- *
- * Of the many feature reports of a real DS4, only the ones hosts need are declared (see
- * FeatureReports.h).
+ * All the reports are declared as on a real DS4, so hosts that only rely on the descriptor (e.g.
+ * the generic HID gamepad support of Windows) read them the same way, and hosts that check it
+ * recognize a DS4. That includes the many feature reports the library has no content for (see
+ * FeatureReports.h), and the PS4 console authentication.
  */
 extern const uint8_t HID_REPORT_DESCRIPTOR[];
 
