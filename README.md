@@ -209,7 +209,16 @@ controller.setMacAddress(CtrlDS4::MacAddress(0x02, 0x00, 0x00, 0x00, 0x00, 0x2A)
 | Steam | Expected to work, not tested yet |
 | PS4, PS5 | Not supported: the consoles authenticate genuine controllers |
 
-Only the USB connection is supported, not Bluetooth.
+### Known limitations
+
+These parts of a real DS4 are not emulated yet, and may be added in future versions:
+
+- **Touchpad:** only its click is supported, as the `CtrlDS4::Touchpad` button. The host sees no finger on its surface.
+- **Motion sensors:** the gyroscope and the accelerometer always report a controller at rest.
+- **Bluetooth:** only the USB connection is supported.
+- **Battery:** the controller always reports a cable connected and a full battery.
+- **USB serial port:** it stays available next to the controller (as `Serial`), and can't be turned off.
+- **Boards without a unique ID:** the library can't generate an address of its own for them, so each one needs its address set with `setMacAddress()` (see [MAC address](#mac-address)).
 
 ### Troubleshooting
 
