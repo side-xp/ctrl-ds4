@@ -248,6 +248,8 @@ Bug reports, ideas and contributions are welcome: see [`CONTRIBUTING.md`](./CONT
 
 This project is licensed under the [MIT License](./LICENSE.md).
 
+It includes data from other projects, under their own license: see [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
+
 ---
 
 Crafted and maintained with love by [Sideways Experiments](https://sideways-experiments.com)

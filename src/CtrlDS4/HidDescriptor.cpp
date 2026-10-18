@@ -3,7 +3,7 @@
 namespace CtrlDS4 {
 namespace internal {
 
-// Taken from GP2040-CE (https://gp2040-ce.info), Copyright (c) 2024 OpenStickCommunity, MIT License.
+// Taken from GP2040-CE (https://gp2040-ce.info), MIT License: see THIRD_PARTY_NOTICES.md.
 const uint8_t HID_REPORT_DESCRIPTOR[] = {
   0x05, 0x01,  // Usage Page (Generic Desktop)
   0x09, 0x05,  // Usage (Game Pad)

@@ -70,7 +70,7 @@ struct __attribute__((packed)) MacAddressReport {
  * @brief Definition of the controller: its type and the features it has.
  *
  * The layout is not documented, so the content of a real DS4 is sent as is. Taken from GP2040-CE
- * (https://gp2040-ce.info), Copyright (c) 2024 OpenStickCommunity, MIT License.
+ * (https://gp2040-ce.info), MIT License: see THIRD_PARTY_NOTICES.md.
  */
 const uint8_t DEFINITION_REPORT[] = {
   0x21, 0x27, 0x04, 0xCF, 0x00, 0x2C, 0x56,
@@ -85,8 +85,8 @@ const uint8_t DEFINITION_REPORT[] = {
  * @brief Firmware build date and time, hardware and firmware versions, among other info.
  *
  * Only some fields are documented, so the content of a real DS4 is sent as is, with versions of a
- * genuine Sony firmware. Taken from GP2040-CE (https://gp2040-ce.info), Copyright (c) 2024
- * OpenStickCommunity, MIT License.
+ * genuine Sony firmware. Taken from GP2040-CE (https://gp2040-ce.info), MIT License: see
+ * THIRD_PARTY_NOTICES.md.
  */
 const uint8_t FIRMWARE_INFO_REPORT[] = {
   // Build date, "Jun  9 2017"
