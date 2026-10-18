@@ -2,10 +2,7 @@
 
 Arduino library to emulate a Sony DualShock 4 (DS4) controller over USB, on boards with native USB such as the *RP2040* and the *SAMD21*.
 
----
-> 🤖 This package has mostly been implemented using AI coding assistant. You can expect some questionable implementation or use cases that are not covered yet.
-> We will refine this package and its usage over time.
----
+> 🤖 This package has mostly been implemented using AI coding assistant. We will refine this package and its usage over time.
 
 ## Prerequisites
 
