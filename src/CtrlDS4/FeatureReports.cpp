@@ -87,6 +87,22 @@ struct __attribute__((packed)) FirmwareInfoReport {
   uint8_t reserved3[6];
 };
 
+/**
+ * @brief Definition of the controller: its type and the features it has.
+ *
+ * The layout is not documented, so the content of a real DS4 is sent as is. Taken from GP2040-CE
+ * (https://gp2040-ce.info), Copyright (c) 2024 OpenStickCommunity, MIT License.
+ */
+const uint8_t DEFINITION_REPORT[] = {
+  0x21, 0x27, 0x04, 0xCF, 0x00, 0x2C, 0x56,
+  0x08, 0x00, 0x3D, 0x00, 0xE8, 0x03, 0x04, 0x00,
+  0xFF, 0x7F, 0x0D, 0x0D, 0x00, 0x00, 0x00, 0x00,
+  0x0D, 0x84, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+static_assert(sizeof(DEFINITION_REPORT) == 47, "Must match the Report Count of report 3 in HID_REPORT_DESCRIPTOR");
 static_assert(sizeof(CalibrationReport) == 36, "Must match the Report Count of report 2 in HID_REPORT_DESCRIPTOR");
 static_assert(sizeof(PairingInfoReport) == 15, "Must match the Report Count of report 18 in HID_REPORT_DESCRIPTOR");
 static_assert(sizeof(MacAddressReport) == 6, "Must match the Report Count of report 129 in HID_REPORT_DESCRIPTOR");
@@ -190,6 +206,8 @@ FirmwareInfoReport makeFirmwareInfoReport() {
 // Fills the content of a feature report requested by the host.
 uint16_t buildFeatureReport(uint8_t reportId, const MacAddress &macAddress, uint8_t *buffer, uint16_t size) {
   switch (reportId) {
+    case DEFINITION_REPORT_ID:
+      return copyReport(DEFINITION_REPORT, buffer, size);
     case CALIBRATION_REPORT_ID:
       return copyReport(makeCalibrationReport(), buffer, size);
     case PAIRING_INFO_REPORT_ID:

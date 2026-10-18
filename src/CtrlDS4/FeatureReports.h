@@ -5,7 +5,8 @@
  * Linux and Android read them to set up the controller, and give up on it if they fail: the
  * hid-playstation driver reads CALIBRATION_REPORT_ID, PAIRING_INFO_REPORT_ID and
  * FIRMWARE_INFO_REPORT_ID, and the older hid-sony driver reads CALIBRATION_REPORT_ID and
- * MAC_ADDRESS_REPORT_ID.
+ * MAC_ADDRESS_REPORT_ID. DEFINITION_REPORT_ID is answered too, as a real DS4 does, for the other
+ * hosts that may read it.
  */
 
 #pragma once
@@ -17,6 +18,8 @@
 namespace CtrlDS4 {
 namespace internal {
 
+/// Report ID of the definition of the controller (type and features).
+constexpr uint8_t DEFINITION_REPORT_ID = 0x03;
 /// Report ID of the calibration of the motion sensors.
 constexpr uint8_t CALIBRATION_REPORT_ID = 0x02;
 /// Report ID of the pairing info, which holds the MAC address of the controller.
