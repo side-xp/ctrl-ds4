@@ -18,9 +18,14 @@ MacAddress makeFallbackMacAddress() {
   return MacAddress(0x02, 0x00, 0x00, 0x00, 0x00, 0x01);
 }
 
+/// The sensor timestamp of the input report counts SENSOR_TICKS_PER_PERIOD every SENSOR_PERIOD_MICROS.
+constexpr uint64_t SENSOR_TICKS_PER_PERIOD = 3;
+/// See SENSOR_TICKS_PER_PERIOD.
+constexpr uint64_t SENSOR_PERIOD_MICROS = 16;
+
 }  // namespace
 
-// Initializes the library. Call once from setup().
+// Chooses the MAC address, then connects to the host as a DS4.
 bool Controller::begin() {
   if (_macAddressSource != MacFromSketch) {
     uint8_t uniqueId[internal::UNIQUE_ID_MAX_SIZE];
@@ -34,18 +39,28 @@ bool Controller::begin() {
     }
   }
 
-  // @todo Initialize the USB device here.
-  _isReady = true;
+  _isReady = _usbDevice.begin();
+  _lastReportMicros = micros();
   return _isReady;
 }
 
-// Runs the library logic. Call on every iteration of loop().
+// Sends the state of the controls to the host, when the host is ready for it.
 void Controller::update() {
-  if (!_isReady) {
+  if (!_isReady || !_usbDevice.isReadyToSend()) {
     return;
   }
 
-  // @todo Implement the library logic. Keep it non-blocking (no delay()).
+  // The unsigned difference stays correct when micros() wraps around.
+  uint32_t nowMicros = micros();
+  _elapsedMicros += nowMicros - _lastReportMicros;
+  _lastReportMicros = nowMicros;
+  uint16_t sensorTimestamp = static_cast<uint16_t>(_elapsedMicros * SENSOR_TICKS_PER_PERIOD / SENSOR_PERIOD_MICROS);
+
+  internal::InputReport report;
+  internal::buildInputReport(_state, _reportCounter, sensorTimestamp, report);
+  if (_usbDevice.sendInputReport(report)) {
+    _reportCounter++;
+  }
 }
 
 // Returns true once begin() has completed successfully.

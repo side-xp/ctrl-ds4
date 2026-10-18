@@ -8,11 +8,10 @@
 #pragma once
 
 #include <Arduino.h>
-// Also makes the build link the TinyUSB stack, which provides Serial when that stack is selected.
-#include <Adafruit_TinyUSB.h>
 
 #include "CtrlDS4/Types.h"
 #include "CtrlDS4/ControlState.h"
+#include "CtrlDS4/UsbDevice.h"
 
 /// Everything the CtrlDS4 library declares: the Controller class and the types of its controls.
 namespace CtrlDS4 {
@@ -23,6 +22,8 @@ namespace CtrlDS4 {
  * Call begin() once from setup(), then update() on every iteration of loop(). Set the state of the
  * controls at any time with the setters (setButton(), setStick(), setTrigger()): update() reports
  * the latest state to the host.
+ *
+ * Declare a single Controller in a sketch, since the board presents itself as one DS4.
  *
  * @code
  * CtrlDS4::Controller controller;
@@ -42,18 +43,20 @@ public:
   /* --- Lifecycle --- */
 
   /**
-   * @brief Initializes the library.
+   * @brief Chooses the MAC address, then connects to the host as a DS4.
    *
-   * Call once from setup(), before any other method.
+   * Call once from setup(). It briefly disconnects the board from the host, so the host sees it
+   * again as a DS4: open the Serial Monitor after begin(), or reopen it.
    *
-   * @return true if initialization succeeded, false otherwise.
+   * @return true if the board could present itself as a DS4, false otherwise.
    */
   bool begin();
 
   /**
-   * @brief Runs the library logic.
+   * @brief Sends the state of the controls to the host, when the host is ready for it.
    *
-   * Call on every iteration of loop(). Does nothing until begin() has succeeded.
+   * Call on every iteration of loop(), without blocking it for long: the host expects a new report
+   * every few milliseconds. Does nothing until begin() has succeeded.
    */
   void update();
 
@@ -142,6 +145,15 @@ private:
   MacAddress _macAddress;
   /// Where _macAddress comes from.
   MacAddressSource _macAddressSource = MacFallback;
+
+  /// USB connection to the host.
+  internal::UsbDevice _usbDevice;
+  /// Number of the next input report, which the host uses to detect lost reports.
+  uint8_t _reportCounter = 0;
+  /// Value of micros() when the last input report was built.
+  uint32_t _lastReportMicros = 0;
+  /// Time since begin(), in microseconds, as of the last input report. Never wraps in practice.
+  uint64_t _elapsedMicros = 0;
 };
 
 }  // namespace CtrlDS4
