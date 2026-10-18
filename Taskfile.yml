@@ -65,6 +65,26 @@ tasks:
           arduino-cli compile --fqbn {{.BOARD}} --library . --warnings all {{dir .ITEM}}
           {{end}}
 
+  docs:
+    desc: Build the documentation website into extras/docs/site
+    cmds:
+      - task: docs:api
+      - zensical build -f extras/docs/zensical.toml
+
+  docs:serve:
+    desc: Preview the documentation website, rebuilt when its pages change (run docs:api again after editing the sources)
+    cmds:
+      - task: docs:api
+      - zensical serve -f extras/docs/zensical.toml
+
+  docs:api:
+    desc: Generate the API reference pages from the documentation comments, with Doxygen (pass `-- --doxygen <path>` if it's not in your PATH)
+    cmds:
+      - cmd: python scripts/generate_api_docs.py {{.CLI_ARGS}}
+        platforms: [windows]
+      - cmd: python3 scripts/generate_api_docs.py {{.CLI_ARGS}}
+        platforms: [linux, darwin]
+
   setup:cores:
     desc: Install the cores of the boards of BOARDS
     cmds:

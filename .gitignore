@@ -14,5 +14,9 @@ build/
 *.hex
 *.uf2
 
+# Documentation website, and the API reference pages generated from the sources
+extras/docs/site/
+extras/docs/pages/api/
+
 # Custom
 /res
