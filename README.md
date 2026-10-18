@@ -104,15 +104,23 @@ The controls are named after the DS4 ones:
 
 The D-pad directions are buttons, so they can be bound to pins like the others. Opposite directions pressed together cancel each other.
 
-#### Bind buttons to pins
+#### Bind controls to buttons
+
+A push button wired to a pin can drive a button, a trigger, or a half of a stick axis:
 
 ```cpp
-controller.bind(CtrlDS4::Cross, 2);                        // Button between pin 2 and GND
-controller.bind(CtrlDS4::Circle, 3, CtrlDS4::ActiveHigh);  // Button between pin 3 and 3.3V
-controller.unbind(CtrlDS4::Circle);                        // Stop driving Circle from its pin
+controller.bind(CtrlDS4::Cross, 2);                          // Button between pin 2 and GND
+controller.bind(CtrlDS4::Circle, 3, CtrlDS4::ActiveHigh);    // Button between pin 3 and 3.3V
+controller.bind(CtrlDS4::R2, 4);                             // R2 fully pressed while pressed
+controller.bind(CtrlDS4::LeftStickY, CtrlDS4::Positive, 5);  // Left stick up while pressed
+controller.bind(CtrlDS4::LeftStickY, CtrlDS4::Negative, 6);  // Left stick down while pressed
 ```
 
+When both halves of a stick axis are bound, pressing both buttons together cancels them, as on a D-pad.
+
 The bound buttons are read on each `update()`, and their contact bounces are filtered: a press is reported at once, then the pin is ignored for 10 ms. If a button reports double presses, increase that time with `controller.setDebounceTime(20)`.
+
+Use `unbind()` to stop driving a control from its pins: `unbind(CtrlDS4::Circle)`, `unbind(CtrlDS4::R2)`, or `unbind(CtrlDS4::LeftStickY)` for both halves of the axis.
 
 #### Set the controls from the sketch
 
@@ -130,7 +138,7 @@ The stick axes (`CtrlDS4::StickAxis`: `LeftStickX`, `LeftStickY`, `RightStickX`,
 
 > `setStick()` and `setTrigger()` set the same controls with the values of the DS4 report instead, from `0` to `255`. In that format, a stick at rest is at `CtrlDS4::STICK_CENTER` (`128`), and Y goes from up to down.
 
-> A bound button follows its pin: calling `setButton()` on it has no lasting effect.
+> A bound control follows its pins: calling a setter on it has no lasting effect.
 
 ### Rumble and lightbar
 

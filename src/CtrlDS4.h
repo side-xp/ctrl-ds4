@@ -10,6 +10,7 @@
 #include <Arduino.h>
 
 #include "CtrlDS4/Types.h"
+#include "CtrlDS4/AxisBinding.h"
 #include "CtrlDS4/ButtonBinding.h"
 #include "CtrlDS4/ControlState.h"
 #include "CtrlDS4/UsbDevice.h"
@@ -78,7 +79,7 @@ public:
   /**
    * @brief Exchanges the latest state with the host.
    *
-   * Reads the pins of the bound buttons, applies the rumble and lightbar changes requested by the
+   * Reads the pins of the bound controls, applies the rumble and lightbar changes requested by the
    * host (calling the callbacks set with onRumble(), onLightbarColor() and onLightbarBlink()), then
    * sends the state of the controls when the host is ready for it.
    *
@@ -110,7 +111,8 @@ public:
   /**
    * @brief Moves a stick, with the values of the DS4 report.
    *
-   * See setAxis() to move a single axis with a value from -1 to 1.
+   * See setAxis() to move a single axis with a value from -1 to 1. An axis bound to pins (see
+   * bind()) follows its pins instead: the next update() overrides the value set here.
    *
    * @param stick Stick to move. Ignored if it's not a Stick value.
    * @param x Horizontal position, from STICK_MIN (left) to STICK_MAX (right).
@@ -120,6 +122,9 @@ public:
 
   /**
    * @brief Moves a single axis of a stick.
+   *
+   * An axis bound to pins (see bind()) follows its pins instead: the next update() overrides the
+   * value set here.
    *
    * @code
    * controller.setAxis(CtrlDS4::LeftStickX, 1);     // Left stick fully right
@@ -136,7 +141,8 @@ public:
    * @brief Presses a trigger, with the values of the DS4 report.
    *
    * The trigger is also reported as a pressed button as soon as its value is above TRIGGER_MIN, as
-   * a real DS4 does. See setTriggerValue() to press it with a value from 0 to 1.
+   * a real DS4 does. See setTriggerValue() to press it with a value from 0 to 1. A trigger bound to
+   * a pin (see bind()) follows its pin instead: the next update() overrides the value set here.
    *
    * @param trigger Trigger to press. Ignored if it's not a Trigger value.
    * @param value How far the trigger is pressed, from TRIGGER_MIN (released) to TRIGGER_MAX (fully
@@ -148,7 +154,8 @@ public:
    * @brief Presses a trigger.
    *
    * The trigger is also reported as a pressed button as soon as its value is above 0, as a real
-   * DS4 does.
+   * DS4 does. A trigger bound to a pin (see bind()) follows its pin instead: the next update()
+   * overrides the value set here.
    *
    * @code
    * controller.setTriggerValue(CtrlDS4::R2, 0.5);  // R2 pressed halfway
@@ -195,7 +202,62 @@ public:
   void unbind(Button button);
 
   /**
-   * @brief Sets how long a bound button ignores its pin after a press or a release.
+   * @brief Drives a trigger from a button wired to a pin of the board.
+   *
+   * The trigger is fully pressed while the button is pressed, and released otherwise.
+   *
+   * @code
+   * controller.bind(CtrlDS4::R2, 4);  // Button between pin 4 and GND
+   * @endcode
+   *
+   * @param trigger Trigger to drive. Ignored if it's not a Trigger value. Binding it again
+   * replaces its previous pin.
+   * @param pin Pin the button is wired to.
+   * @param wiring How the button is wired to the pin.
+   */
+  void bind(Trigger trigger, uint8_t pin, ButtonWiring wiring = ActiveLow);
+
+  /**
+   * @brief Drives a half of a stick axis from a button wired to a pin of the board.
+   *
+   * The axis is pushed to the end of that half while the button is pressed. Bind a button to each
+   * half to drive the whole axis: pressed together, they cancel each other.
+   *
+   * @code
+   * controller.bind(CtrlDS4::LeftStickY, CtrlDS4::Positive, 5);  // Up while pressed
+   * controller.bind(CtrlDS4::LeftStickY, CtrlDS4::Negative, 6);  // Down while pressed
+   * @endcode
+   *
+   * @param axis Axis to drive. Ignored if it's not a StickAxis value.
+   * @param half Half of the axis the button pushes to. Ignored if it's not an AxisHalf value.
+   * Binding it again replaces its previous pin.
+   * @param pin Pin the button is wired to.
+   * @param wiring How the button is wired to the pin.
+   */
+  void bind(StickAxis axis, AxisHalf half, uint8_t pin, ButtonWiring wiring = ActiveLow);
+
+  /**
+   * @brief Stops driving a trigger from its pin, and releases it.
+   *
+   * The mode of the pin is left as is.
+   *
+   * @param trigger Trigger to stop driving. Ignored if it's not a Trigger value, or not bound.
+   */
+  void unbind(Trigger trigger);
+
+  /**
+   * @brief Stops driving both halves of a stick axis from their pins, and puts the axis at rest.
+   *
+   * The mode of the pins is left as is.
+   *
+   * @param axis Axis to stop driving. Ignored if it's not a StickAxis value, or not bound.
+   */
+  void unbind(StickAxis axis);
+
+  /**
+   * @brief Sets how long the bound buttons ignore their pin after a press or a release.
+   *
+   * Applies to all the buttons wired to pins, including the ones driving a trigger or a stick axis.
    *
    * Mechanical buttons bounce for a few milliseconds, which would read as several presses. Presses
    * are still reported at once: this only limits how fast a button can be pressed again.
@@ -289,9 +351,9 @@ public:
 
 private:
   /**
-   * @brief Presses or releases the bound buttons from their pins.
+   * @brief Sets the bound buttons, triggers and stick axes from their pins.
    */
-  void readBoundButtons();
+  void readBindings();
 
   /**
    * @brief Applies the rumble and lightbar changes requested by the host, if any.
@@ -313,6 +375,10 @@ private:
 
   /// Pin binding of each button, indexed by the Button value.
   internal::ButtonBinding _buttonBindings[internal::BUTTON_COUNT];
+  /// Pin binding of each trigger, indexed by the Trigger value.
+  internal::AxisHalfInput _triggerBindings[internal::TRIGGER_COUNT];
+  /// Pin bindings of each stick axis, indexed by the StickAxis value.
+  internal::StickAxisBinding _stickAxisBindings[internal::STICK_AXIS_COUNT];
   /// How long a bound button ignores its pin after a change, in milliseconds.
   uint16_t _debounceMs = DEFAULT_DEBOUNCE_MS;
 

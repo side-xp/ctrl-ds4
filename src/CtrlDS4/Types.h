@@ -92,6 +92,17 @@ enum StickAxis : uint8_t {
 };
 
 /**
+ * @brief Half of a stick axis, for the inputs that drive an axis in one direction only.
+ *
+ * When both halves of an axis are driven, the axis value is the positive half minus the negative
+ * half: two buttons pressed together cancel each other.
+ */
+enum AxisHalf : uint8_t {
+  Positive,  ///< From 0 to 1: right (X) or up (Y).
+  Negative   ///< From 0 to -1: left (X) or down (Y).
+};
+
+/**
  * @brief Analog triggers of the controller.
  *
  * Each trigger goes from TRIGGER_MIN (released) to TRIGGER_MAX (fully pressed).

@@ -51,17 +51,31 @@ void Controller::update() {
     return;
   }
 
-  readBoundButtons();
+  readBindings();
   applyHostOutput();
   sendInputReport();
 }
 
-// Presses or releases the bound buttons from their pins.
-void Controller::readBoundButtons() {
+// Sets the bound buttons, triggers and stick axes from their pins.
+void Controller::readBindings() {
   for (uint8_t button = 0; button < internal::BUTTON_COUNT; button++) {
     internal::ButtonBinding &binding = _buttonBindings[button];
     if (binding.isAttached()) {
       setButton(static_cast<Button>(button), binding.read(_debounceMs));
+    }
+  }
+
+  for (uint8_t trigger = 0; trigger < internal::TRIGGER_COUNT; trigger++) {
+    internal::AxisHalfInput &binding = _triggerBindings[trigger];
+    if (binding.isAttached()) {
+      setTriggerValue(static_cast<Trigger>(trigger), binding.read(_debounceMs));
+    }
+  }
+
+  for (uint8_t axis = 0; axis < internal::STICK_AXIS_COUNT; axis++) {
+    internal::StickAxisBinding &binding = _stickAxisBindings[axis];
+    if (binding.isAttached()) {
+      setAxis(static_cast<StickAxis>(axis), binding.read(_debounceMs));
     }
   }
 }
@@ -200,7 +214,45 @@ void Controller::unbind(Button button) {
   setButton(button, false);
 }
 
-// Sets how long a bound button ignores its pin after a press or a release.
+// Drives a trigger from a button wired to a pin of the board.
+void Controller::bind(Trigger trigger, uint8_t pin, ButtonWiring wiring) {
+  if (trigger >= internal::TRIGGER_COUNT) {
+    return;
+  }
+
+  _triggerBindings[trigger].attachButton(pin, wiring);
+}
+
+// Drives a half of a stick axis from a button wired to a pin of the board.
+void Controller::bind(StickAxis axis, AxisHalf half, uint8_t pin, ButtonWiring wiring) {
+  if (axis >= internal::STICK_AXIS_COUNT || half >= internal::AXIS_HALF_COUNT) {
+    return;
+  }
+
+  _stickAxisBindings[axis].getHalf(half).attachButton(pin, wiring);
+}
+
+// Stops driving a trigger from its pin, and releases it.
+void Controller::unbind(Trigger trigger) {
+  if (trigger >= internal::TRIGGER_COUNT || !_triggerBindings[trigger].isAttached()) {
+    return;
+  }
+
+  _triggerBindings[trigger].detach();
+  setTrigger(trigger, TRIGGER_MIN);
+}
+
+// Stops driving both halves of a stick axis from their pins, and puts the axis at rest.
+void Controller::unbind(StickAxis axis) {
+  if (axis >= internal::STICK_AXIS_COUNT || !_stickAxisBindings[axis].isAttached()) {
+    return;
+  }
+
+  _stickAxisBindings[axis].detach();
+  setAxis(axis, 0);
+}
+
+// Sets how long the bound buttons ignore their pin after a press or a release.
 void Controller::setDebounceTime(uint16_t debounceMs) {
   _debounceMs = debounceMs;
 }

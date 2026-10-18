@@ -16,6 +16,10 @@ namespace internal {
 constexpr uint8_t BUTTON_COUNT = DPadRight + 1;
 /// Number of Stick values (RightStick is the last one).
 constexpr uint8_t STICK_COUNT = RightStick + 1;
+/// Number of StickAxis values (RightStickY is the last one).
+constexpr uint8_t STICK_AXIS_COUNT = RightStickY + 1;
+/// Number of AxisHalf values (Negative is the last one).
+constexpr uint8_t AXIS_HALF_COUNT = Negative + 1;
 /// Number of Trigger values (R2 is the last one).
 constexpr uint8_t TRIGGER_COUNT = R2 + 1;
 
