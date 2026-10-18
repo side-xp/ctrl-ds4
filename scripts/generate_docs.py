@@ -1446,6 +1446,8 @@ def main() -> int:
 
     # Removes the XML of the deleted or renamed sources, which Doxygen leaves behind.
     shutil.rmtree(XML_DIR, ignore_errors=True)
+    # Doxygen only creates the last folder of OUTPUT_DIRECTORY, so it fails on a fresh clone.
+    XML_DIR.parent.mkdir(parents=True, exist_ok=True)
     if subprocess.run([doxygen, str(DOXYFILE)], cwd=ROOT_DIR).returncode != 0:
         return 1
 
