@@ -9,14 +9,18 @@
 #include <Adafruit_TinyUSB.h>
 
 #include "InputReport.h"
+#include "Types.h"
 
 namespace CtrlDS4 {
 namespace internal {
 
 /**
- * @brief Presents the board to the host as a DS4, and sends it the reports.
+ * @brief Presents the board to the host as a DS4, and exchanges the reports with it.
  *
  * The USB serial port (Serial) stays available next to the controller.
+ *
+ * Only one instance can be used, since TinyUSB reports the requests of the host through functions
+ * that have no access to an instance.
  */
 class UsbDevice {
 public:
@@ -26,9 +30,10 @@ public:
    * The cores connect to the host before setup() runs, as a plain serial device. Reconnecting
    * makes the host read the device again, this time with the identity and interface of a DS4.
    *
+   * @param macAddress MAC address of the controller, which the host reads when it connects.
    * @return true if the DS4 interface could be added, false otherwise.
    */
-  bool begin();
+  bool begin(const MacAddress &macAddress);
 
   /**
    * @brief Tells whether the host is ready to receive a new input report.

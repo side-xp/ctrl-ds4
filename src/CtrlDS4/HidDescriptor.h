@@ -15,6 +15,9 @@ namespace internal {
  *
  * The input and output reports are declared as on a real DS4, so hosts that only rely on the
  * descriptor (e.g. the generic HID gamepad support of Windows) read them the same way.
+ *
+ * Of the many feature reports of a real DS4, only the ones hosts need are declared (see
+ * FeatureReports.h).
  */
 extern const uint8_t HID_REPORT_DESCRIPTOR[];
 

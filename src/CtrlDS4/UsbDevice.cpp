@@ -1,5 +1,6 @@
 #include "UsbDevice.h"
 
+#include "FeatureReports.h"
 #include "HidDescriptor.h"
 
 namespace CtrlDS4 {
@@ -23,15 +24,38 @@ constexpr uint8_t POLL_INTERVAL_MS = 4;
 /// How long the board stays disconnected while reconnecting, so the host notices it.
 constexpr uint32_t RECONNECTION_DELAY_MS = 10;
 
+/// MAC address reported in the feature reports, set by UsbDevice::begin().
+MacAddress reportedMacAddress;
+
+/**
+ * @brief Answers a report request of the host. Called by TinyUSB.
+ *
+ * @param reportId ID of the requested report.
+ * @param reportType Type of the requested report. Only feature reports are answered.
+ * @param buffer Buffer receiving the content of the report, after the report ID.
+ * @param requestedSize Size of the buffer in bytes.
+ * @return Number of bytes written, or 0 if the controller has no such report.
+ */
+uint16_t onGetReport(uint8_t reportId, hid_report_type_t reportType, uint8_t *buffer, uint16_t requestedSize) {
+  if (reportType != HID_REPORT_TYPE_FEATURE) {
+    return 0;
+  }
+
+  return buildFeatureReport(reportId, reportedMacAddress, buffer, requestedSize);
+}
+
 }  // namespace
 
 // Adds the DS4 interface to the USB device, and reconnects to the host so it sees it.
-bool UsbDevice::begin() {
+bool UsbDevice::begin(const MacAddress &macAddress) {
+  reportedMacAddress = macAddress;
+
   TinyUSBDevice.setID(SONY_VENDOR_ID, DS4_PRODUCT_ID);
   TinyUSBDevice.setManufacturerDescriptor(MANUFACTURER_NAME);
   TinyUSBDevice.setProductDescriptor(PRODUCT_NAME);
 
   _hid.setReportDescriptor(HID_REPORT_DESCRIPTOR, HID_REPORT_DESCRIPTOR_SIZE);
+  _hid.setReportCallback(onGetReport, nullptr);
   _hid.setPollInterval(POLL_INTERVAL_MS);
   // Hosts send the output report (rumble and lightbar) through this endpoint.
   _hid.enableOutEndpoint(true);

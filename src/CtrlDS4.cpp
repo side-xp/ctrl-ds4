@@ -39,7 +39,7 @@ bool Controller::begin() {
     }
   }
 
-  _isReady = _usbDevice.begin();
+  _isReady = _usbDevice.begin(_macAddress);
   _lastReportMicros = micros();
   return _isReady;
 }

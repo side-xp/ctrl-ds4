@@ -63,6 +63,26 @@ const uint8_t HID_REPORT_DESCRIPTOR[] = {
   0x95, 0x1F,  //   Report Count (31)
   0x91, 0x02,  //   Output (Data, Variable, Absolute)
 
+  // Feature reports: see FeatureReports.h for their content.
+  0x85, 0x02,        //   Report ID (2): motion sensors calibration
+  0x09, 0x24,        //   Usage (0x24)
+  0x95, 0x24,        //   Report Count (36)
+  0xB1, 0x02,        //   Feature (Data, Variable, Absolute)
+  0x06, 0x02, 0xFF,  //   Usage Page (Vendor Defined 0xFF02)
+  0x85, 0x12,        //   Report ID (18): pairing info
+  0x09, 0x21,        //   Usage (0x21)
+  0x95, 0x0F,        //   Report Count (15)
+  0xB1, 0x02,        //   Feature (Data, Variable, Absolute)
+  0x06, 0x80, 0xFF,  //   Usage Page (Vendor Defined 0xFF80)
+  0x85, 0x81,        //   Report ID (129): MAC address
+  0x09, 0x21,        //   Usage (0x21)
+  0x95, 0x06,        //   Report Count (6)
+  0xB1, 0x02,        //   Feature (Data, Variable, Absolute)
+  0x85, 0xA3,        //   Report ID (163): firmware info
+  0x09, 0x45,        //   Usage (0x45)
+  0x95, 0x30,        //   Report Count (48)
+  0xB1, 0x02,        //   Feature (Data, Variable, Absolute)
+
   0xC0,  // End Collection
 };
 
