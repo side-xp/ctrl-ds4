@@ -17,7 +17,7 @@ At Sideways Experiments, we hate doing the same thing more than once, and we lov
 | [arduino-lint](https://arduino.github.io/arduino-lint/latest/) | Checking the library structure and metadata. | Download the archive for your system from the [releases](https://github.com/arduino/arduino-lint/releases), extract it outside the project and add that folder to your `PATH` |
 | [Python](https://www.python.org) 3.8 or later (3.14 or later for the documentation) | Optional: VS Code setup, and documentation website. | [Downloads](https://www.python.org/downloads/) |
 | [Doxygen](https://www.doxygen.nl) | Optional: reading the documentation comments for the documentation website. | [Downloads](https://www.doxygen.nl/download.html) (`winget install DimitriVanHeesch.Doxygen` on Windows) |
-| [Sideways Experiments theme](https://github.com/side-xp/py-zensical-theme) for [Zensical](https://zensical.org) | Optional: building the documentation website. | `pip install git+https://github.com/side-xp/py-zensical-theme@v0.1.0`, which installs Zensical too |
+| [Sideways Experiments theme](https://github.com/side-xp/py-zensical-theme) for [Zensical](https://zensical.org) | Optional: building the documentation website. | `pip install --upgrade git+https://github.com/side-xp/py-zensical-theme`, which installs Zensical too (run it again to update the theme) |
 
 > The [Arduino IDE](https://www.arduino.cc/en/software) is not required for development, but it's the best way to test the library the way users will install it.
 
@@ -130,8 +130,8 @@ Common types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`.
 
 The CI runs on GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)), with the same tools as for local development:
 
-- **Push on `dev` or `develop`:** runs `task check`, and builds the documentation website with `task docs`.
-- **Push on `main` or `master`:** same, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
+- **Push on `dev` or `develop`:** runs `task check`.
+- **Push on `main` or `master`:** runs `task check`, and builds the documentation website with `task docs`, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
   - sets the new version in [`library.properties`](./library.properties), commits it and tags that commit with the version (e.g. `0.2.0`, without a `v` prefix)
   - creates a GitHub release, with notes generated from the commits
   - deploys the documentation website to GitHub Pages

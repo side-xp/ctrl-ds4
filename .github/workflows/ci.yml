@@ -18,7 +18,6 @@ env:
   DOXYGEN_VERSION: 1.18.0
   # The documentation theme requires Python 3.14 or later.
   PYTHON_VERSION: '3.14'
-  DOCS_THEME_VERSION: v0.1.0
 
 jobs:
   check:
@@ -55,8 +54,10 @@ jobs:
       - name: Check
         run: task check
 
-  # Builds the documentation website on every push, so a broken build shows up before a release.
+  # Builds the documentation website for the deploy-docs job, so only where it can deploy: on the
+  # main branch, or on a manual run. Run `task docs` locally to check the documentation before.
   docs:
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,9 +73,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # Installs Zensical too, as a dependency of the theme.
+      # Latest version of the default branch, so the website follows the theme updates. Installs
+      # Zensical too, as a dependency of the theme.
       - name: Install the documentation theme
-        run: pip install "git+https://github.com/side-xp/py-zensical-theme@${DOCS_THEME_VERSION}"
+        run: pip install "git+https://github.com/side-xp/py-zensical-theme"
 
       # Only the doxygen executable of the release archive is needed. Installed outside the
       # workspace, like arduino-lint.
@@ -88,7 +90,7 @@ jobs:
       - name: Build the documentation
         run: task docs
 
-      # Uploaded on every push, but only deployed by the deploy-docs job.
+      # Deployed by the deploy-docs job, only if a new version is released (or on a manual run).
       - name: Upload the documentation
         uses: actions/upload-pages-artifact@v5
         with:
