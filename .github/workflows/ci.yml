@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches: [main, master, dev, develop]
+  # Runs the checks and redeploys the documentation website without releasing, e.g. after a change
+  # that doesn't trigger a release (docs, chore...). Run it on the default branch to deploy.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,6 +14,11 @@ env:
   ARDUINO_LINT_VERSION: 1.3.0
   # Pinned, so a new clang-format release can't change the result of the formatting check.
   CLANG_FORMAT_VERSION: 18.1.8
+  # Pinned, so a new release can't change the generated documentation.
+  DOXYGEN_VERSION: 1.18.0
+  # The documentation theme requires Python 3.14 or later.
+  PYTHON_VERSION: '3.14'
+  DOCS_THEME_VERSION: v0.1.0
 
 jobs:
   check:
@@ -47,13 +55,55 @@ jobs:
       - name: Check
         run: task check
 
+  # Builds the documentation website on every push, so a broken build shows up before a release.
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Task
+        uses: arduino/setup-task@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # Installs Zensical too, as a dependency of the theme.
+      - name: Install the documentation theme
+        run: pip install "git+https://github.com/side-xp/py-zensical-theme@${DOCS_THEME_VERSION}"
+
+      # Only the doxygen executable of the release archive is needed. Installed outside the
+      # workspace, like arduino-lint.
+      - name: Install Doxygen
+        run: |
+          mkdir -p "${RUNNER_TEMP}/doxygen"
+          curl -fsSL "https://github.com/doxygen/doxygen/releases/download/Release_${DOXYGEN_VERSION//./_}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz" \
+            | tar -xz -C "${RUNNER_TEMP}/doxygen" --strip-components=2 "doxygen-${DOXYGEN_VERSION}/bin/doxygen"
+          echo "${RUNNER_TEMP}/doxygen" >> "${GITHUB_PATH}"
+
+      - name: Build the documentation
+        run: task docs
+
+      # Uploaded on every push, but only deployed by the deploy-docs job.
+      - name: Upload the documentation
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: extras/docs/site
+
   release:
     needs: check
-    if: github.ref_name == 'main' || github.ref_name == 'master'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
     runs-on: ubuntu-latest
     permissions:
       # Push the version commit and tag, and create the GitHub release.
       contents: write
+    outputs:
+      # 'true' if semantic-release published a new version (set by the successCmd of .releaserc.json).
+      released: ${{ steps.release.outputs.released }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -68,6 +118,40 @@ jobs:
 
       # Configured in .releaserc.json.
       - name: Release
+        id: release
         run: npx --yes -p semantic-release@25 -p @semantic-release/exec@7 -p @semantic-release/git@11 semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Deploys the documentation website built by the docs job to GitHub Pages, when a new version is
+  # released, or when the workflow is run by hand on the default branch.
+  #
+  # Part of this workflow on purpose: semantic-release creates the GitHub release with the
+  # GITHUB_TOKEN, and the events of that token don't trigger other workflows (such as one running
+  # on "release: published").
+  deploy-docs:
+    needs: [check, docs, release]
+    # always() runs the job even though release is skipped on manual runs.
+    if: >-
+      always()
+      && needs.check.result == 'success'
+      && needs.docs.result == 'success'
+      && github.ref_name == github.event.repository.default_branch
+      && (needs.release.outputs.released == 'true' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      # Deploy to GitHub Pages, and prove that the deployment comes from this workflow.
+      pages: write
+      id-token: write
+    # Shows the link to the website on the repository page, and in the run summary.
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    # A single deployment at a time, without cancelling the one in progress.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy the documentation
+        id: deploy
+        uses: actions/deploy-pages@v5

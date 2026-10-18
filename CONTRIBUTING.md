@@ -130,10 +130,12 @@ Common types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`.
 
 The CI runs on GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)), with the same tools as for local development:
 
-- **Push on `dev` or `develop`:** runs `task check`.
-- **Push on `main` or `master`:** runs `task check`, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
+- **Push on `dev` or `develop`:** runs `task check`, and builds the documentation website with `task docs`.
+- **Push on `main` or `master`:** same, then [semantic-release](https://semantic-release.gitbook.io) ([`.releaserc.json`](./.releaserc.json)). If the commits since the last release contain a `feat`, `fix`, `perf` or breaking change, it:
   - sets the new version in [`library.properties`](./library.properties), commits it and tags that commit with the version (e.g. `0.2.0`, without a `v` prefix)
   - creates a GitHub release, with notes generated from the commits
+  - deploys the documentation website to GitHub Pages
+- **Manual run** (**Actions** tab, **CI** workflow, **Run workflow**): runs `task check` and builds the documentation website, without releasing. On the default branch, it also deploys the website, e.g. to publish a documentation change that doesn't trigger a release (`docs`, `chore`...).
 
 > The release adds a commit on the main branch: pull it before merging into the main branch again.
 
