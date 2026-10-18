@@ -1,5 +1,6 @@
 #include "CtrlDS4.h"
 
+#include "CtrlDS4/AxisValue.h"
 #include "CtrlDS4/UniqueId.h"
 
 namespace CtrlDS4 {
@@ -140,6 +141,27 @@ void Controller::setStick(Stick stick, uint8_t x, uint8_t y) {
   _state.stickY[stick] = y;
 }
 
+// Moves a single axis of a stick.
+void Controller::setAxis(StickAxis axis, float value) {
+  // In the DS4 report, Y goes from up to down: the opposite of the axis values of the library.
+  switch (axis) {
+    case LeftStickX:
+      _state.stickX[LeftStick] = internal::toRawStickAxis(value);
+      break;
+    case LeftStickY:
+      _state.stickY[LeftStick] = internal::toRawStickAxis(-value);
+      break;
+    case RightStickX:
+      _state.stickX[RightStick] = internal::toRawStickAxis(value);
+      break;
+    case RightStickY:
+      _state.stickY[RightStick] = internal::toRawStickAxis(-value);
+      break;
+    default:
+      break;
+  }
+}
+
 // Presses a trigger.
 void Controller::setTrigger(Trigger trigger, uint8_t value) {
   if (trigger >= internal::TRIGGER_COUNT) {
@@ -147,6 +169,11 @@ void Controller::setTrigger(Trigger trigger, uint8_t value) {
   }
 
   _state.triggers[trigger] = value;
+}
+
+// Presses a trigger.
+void Controller::setTriggerValue(Trigger trigger, float value) {
+  setTrigger(trigger, internal::toRawTrigger(value));
 }
 
 // Puts all the controls at rest.

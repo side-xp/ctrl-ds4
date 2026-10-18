@@ -119,13 +119,16 @@ The bound buttons are read on each `update()`, and their contact bounces are fil
 For anything that is not a button wired to a pin (an analog stick, a sensor, a value computed by the sketch...), set the controls directly:
 
 ```cpp
-controller.setButton(CtrlDS4::Square, true);                // Press Square
-controller.setStick(CtrlDS4::LeftStick, 255, 128);          // Push the left stick fully right
-controller.setTrigger(CtrlDS4::R2, 128);                    // Press R2 halfway
-controller.releaseAll();                                    // Put all the controls at rest
+controller.setButton(CtrlDS4::Square, true);        // Press Square
+controller.setAxis(CtrlDS4::LeftStickX, 1);         // Push the left stick fully right
+controller.setAxis(CtrlDS4::LeftStickY, -0.5);      // Push the left stick halfway down
+controller.setTriggerValue(CtrlDS4::R2, 0.5);       // Press R2 halfway
+controller.releaseAll();                            // Put all the controls at rest
 ```
 
-The stick axes and the triggers go from `0` to `255`. A stick at rest is at `CtrlDS4::STICK_CENTER` (`128`) on both axes: X goes from left to right, and Y from up to down, as on a real DS4.
+The stick axes (`CtrlDS4::StickAxis`: `LeftStickX`, `LeftStickY`, `RightStickX`, `RightStickY`) go from `-1` to `1`, `0` being at rest: X goes from left to right, and Y from down to up. The triggers go from `0` (released) to `1` (fully pressed).
+
+> `setStick()` and `setTrigger()` set the same controls with the values of the DS4 report instead, from `0` to `255`. In that format, a stick at rest is at `CtrlDS4::STICK_CENTER` (`128`), and Y goes from up to down.
 
 > A bound button follows its pin: calling `setButton()` on it has no lasting effect.
 

@@ -79,6 +79,19 @@ constexpr uint8_t STICK_CENTER = 128;
 constexpr uint8_t STICK_MAX = 255;
 
 /**
+ * @brief Single axes of the analog sticks, for the controls driven one axis at a time.
+ *
+ * Their values go from -1 to 1, 0 being at rest: X goes from left (-1) to right (1), and Y from
+ * down (-1) to up (1).
+ */
+enum StickAxis : uint8_t {
+  LeftStickX,   ///< Horizontal axis of the left stick.
+  LeftStickY,   ///< Vertical axis of the left stick.
+  RightStickX,  ///< Horizontal axis of the right stick.
+  RightStickY   ///< Vertical axis of the right stick.
+};
+
+/**
  * @brief Analog triggers of the controller.
  *
  * Each trigger goes from TRIGGER_MIN (released) to TRIGGER_MAX (fully pressed).

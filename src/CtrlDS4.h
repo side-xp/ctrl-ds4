@@ -108,25 +108,57 @@ public:
   void setButton(Button button, bool isPressed);
 
   /**
-   * @brief Moves a stick.
+   * @brief Moves a stick, with the values of the DS4 report.
+   *
+   * See setAxis() to move a single axis with a value from -1 to 1.
    *
    * @param stick Stick to move. Ignored if it's not a Stick value.
    * @param x Horizontal position, from STICK_MIN (left) to STICK_MAX (right).
-   * @param y Vertical position, from STICK_MIN (up) to STICK_MAX (down).
+   * @param y Vertical position, from STICK_MIN (up) to STICK_MAX (down), as in the DS4 report.
    */
   void setStick(Stick stick, uint8_t x, uint8_t y);
 
   /**
-   * @brief Presses a trigger.
+   * @brief Moves a single axis of a stick.
+   *
+   * @code
+   * controller.setAxis(CtrlDS4::LeftStickX, 1);     // Left stick fully right
+   * controller.setAxis(CtrlDS4::LeftStickY, -0.5);  // Left stick halfway down
+   * @endcode
+   *
+   * @param axis Axis to move. Ignored if it's not a StickAxis value.
+   * @param value Position on the axis, from -1 to 1, 0 being at rest: X goes from left (-1) to
+   * right (1), and Y from down (-1) to up (1). Clamped to that range.
+   */
+  void setAxis(StickAxis axis, float value);
+
+  /**
+   * @brief Presses a trigger, with the values of the DS4 report.
    *
    * The trigger is also reported as a pressed button as soon as its value is above TRIGGER_MIN, as
-   * a real DS4 does.
+   * a real DS4 does. See setTriggerValue() to press it with a value from 0 to 1.
    *
    * @param trigger Trigger to press. Ignored if it's not a Trigger value.
    * @param value How far the trigger is pressed, from TRIGGER_MIN (released) to TRIGGER_MAX (fully
    * pressed).
    */
   void setTrigger(Trigger trigger, uint8_t value);
+
+  /**
+   * @brief Presses a trigger.
+   *
+   * The trigger is also reported as a pressed button as soon as its value is above 0, as a real
+   * DS4 does.
+   *
+   * @code
+   * controller.setTriggerValue(CtrlDS4::R2, 0.5);  // R2 pressed halfway
+   * @endcode
+   *
+   * @param trigger Trigger to press. Ignored if it's not a Trigger value.
+   * @param value How far the trigger is pressed, from 0 (released) to 1 (fully pressed). Clamped
+   * to that range.
+   */
+  void setTriggerValue(Trigger trigger, float value);
 
   /**
    * @brief Puts all the controls at rest: buttons released, sticks centered and triggers released.
