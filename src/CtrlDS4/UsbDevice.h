@@ -18,7 +18,7 @@ namespace internal {
 /**
  * @brief Presents the board to the host as a DS4, and exchanges the reports with it.
  *
- * The USB serial port (Serial) stays available next to the controller.
+ * The USB serial port (Serial) can stay available next to the controller (see begin()).
  *
  * Only one instance can be used, since TinyUSB reports the requests of the host through functions
  * that have no access to an instance.
@@ -32,9 +32,11 @@ public:
    * makes the host read the device again, this time with the identity and interface of a DS4.
    *
    * @param macAddress MAC address of the controller, which the host reads when it connects.
+   * @param isSerialEnabled true to keep the USB serial port next to the controller, false to remove
+   * it, as a real DS4 has none.
    * @return true if the DS4 interface could be added, false otherwise.
    */
-  bool begin(const MacAddress &macAddress);
+  bool begin(const MacAddress &macAddress, bool isSerialEnabled);
 
   /**
    * @brief Tells whether the host is ready to receive a new input report.

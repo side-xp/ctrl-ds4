@@ -6,7 +6,8 @@
  * the vibration test of a gamepad tester website in Chrome, or the controller settings of Steam.
  *
  * Replace the prints with your own outputs, such as a vibration motor driven with analogWrite(), or
- * an RGB LED.
+ * an RGB LED. The USB serial port is kept for the prints, so some hosts may refuse the controller:
+ * remove setUsbSerialEnabled() along with them.
  */
 
 #include <CtrlDS4.h>
@@ -17,11 +18,13 @@ CtrlDS4::Controller controller;
 /**
  * @brief Runs once at startup.
  *
- * Registers the functions to call on changes, then initializes the controller.
+ * Keeps the serial port and registers the functions to call on changes, then initializes the
+ * controller.
  */
 void setup() {
   Serial.begin(115200);
 
+  controller.setUsbSerialEnabled(true);
   controller.onRumble(printRumble);
   controller.onLightbarColor(printLightbarColor);
   controller.onLightbarBlink(printLightbarBlink);

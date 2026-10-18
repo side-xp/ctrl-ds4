@@ -69,8 +69,9 @@ public:
   /**
    * @brief Chooses the MAC address, then connects to the host as a DS4.
    *
-   * Call once from setup(). It briefly disconnects the board from the host, so the host sees it
-   * again as a DS4: open the Serial Monitor after begin(), or reopen it.
+   * Call once from setup(). It removes the USB serial port unless setUsbSerialEnabled() keeps it,
+   * and briefly disconnects the board from the host, so the host sees it again as a DS4: open the
+   * Serial Monitor after begin(), or reopen it.
    *
    * @return true if the board could present itself as a DS4, false otherwise.
    */
@@ -106,6 +107,21 @@ public:
    * of the host.
    */
   void setReportInterval(uint16_t intervalMs);
+
+  /**
+   * @brief Keeps or removes the USB serial port of the board (Serial) next to the controller.
+   *
+   * A real DS4 has no serial port, and some hosts refuse a controller that has one, so begin()
+   * removes it unless it's kept here. Without it, Serial prints nothing, and uploading a new sketch
+   * needs the board to be put in bootloader mode by hand.
+   *
+   * Call it before begin(), which applies it. While the port is removed, don't call Serial.begin()
+   * after begin(): it would add the port back while the host already knows the device.
+   *
+   * @param isEnabled true to keep the serial port, e.g. to print to the Serial Monitor while
+   * developing. false to remove it, the default.
+   */
+  void setUsbSerialEnabled(bool isEnabled);
 
   /* --- Controls --- */
 
@@ -476,6 +492,8 @@ private:
 
   /// USB connection to the host.
   internal::UsbDevice _usbDevice;
+  /// Whether begin() keeps the USB serial port next to the controller.
+  bool _isUsbSerialEnabled = false;
   /// Time between two input reports, in milliseconds.
   uint16_t _reportIntervalMs = DEFAULT_REPORT_INTERVAL_MS;
   /// Number of the next input report, which the host uses to detect lost reports.

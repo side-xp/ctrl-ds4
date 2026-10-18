@@ -20,10 +20,11 @@ bool wasSerialOpen = false;
 /**
  * @brief Runs once at startup.
  *
- * Opens the serial port, then initializes the controller, which chooses its MAC address.
+ * Opens and keeps the serial port, then initializes the controller, which chooses its MAC address.
  */
 void setup() {
   Serial.begin(115200);
+  controller.setUsbSerialEnabled(true);
   controller.begin();
 }
 

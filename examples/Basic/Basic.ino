@@ -16,14 +16,10 @@ CtrlDS4::Controller controller;
 /**
  * @brief Runs once at startup.
  *
- * Opens the serial port to report errors, then initializes the controller.
+ * Initializes the controller.
  */
 void setup() {
-  Serial.begin(9600);
-
-  if (!controller.begin()) {
-    Serial.println(F("CtrlDS4 failed to initialize."));
-  }
+  controller.begin();
 }
 
 /**

@@ -40,7 +40,7 @@ bool Controller::begin() {
     }
   }
 
-  _isReady = _usbDevice.begin(_macAddress);
+  _isReady = _usbDevice.begin(_macAddress, _isUsbSerialEnabled);
   _lastReportMicros = micros();
   return _isReady;
 }
@@ -142,6 +142,11 @@ bool Controller::isReady() const {
 // Sets how often update() sends the state of the controls to the host.
 void Controller::setReportInterval(uint16_t intervalMs) {
   _reportIntervalMs = intervalMs;
+}
+
+// Keeps or removes the USB serial port of the board next to the controller.
+void Controller::setUsbSerialEnabled(bool isEnabled) {
+  _isUsbSerialEnabled = isEnabled;
 }
 
 // Presses or releases a button.

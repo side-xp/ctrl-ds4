@@ -202,6 +202,20 @@ If a board has no usable factory ID (some RP2040 clone boards), `controller.getM
 controller.setMacAddress(CtrlDS4::MacAddress(0x02, 0x00, 0x00, 0x00, 0x00, 0x2A));
 ```
 
+### USB serial port
+
+A real DS4 has no serial port, and some hosts refuse a controller that has one. So by default, `begin()` removes the USB serial port of the board: `Serial` prints nothing, and uploading a new sketch needs the board to be put in bootloader mode by hand (see [Troubleshooting](#troubleshooting)).
+
+While developing, keep the port to print to the Serial Monitor, by calling this before `begin()`:
+
+```cpp
+controller.setUsbSerialEnabled(true);
+```
+
+Remove that call before using the controller with its target host.
+
+> While the port is removed, don't call `Serial.begin()` after `begin()`: it would add the port back while the host already knows the device.
+
 ### Compatibility
 
 | Host | Status |
@@ -219,13 +233,12 @@ These parts of a real DS4 are not emulated yet, and may be added in future versi
 - **Motion sensors:** the gyroscope and the accelerometer always report a controller at rest.
 - **Bluetooth:** only the USB connection is supported.
 - **Battery:** the controller always reports a cable connected and a full battery.
-- **USB serial port:** it stays available next to the controller (as `Serial`), and can't be turned off.
 - **Boards without a unique ID:** the library can't generate an address of its own for them, so each one needs its address set with `setMacAddress()` (see [MAC address](#mac-address)).
 
 ### Troubleshooting
 
-- **The upload fails, or the port of the board is gone:** once the sketch runs, the board presents itself with the identity of a DS4, so its serial port changes. Put the board in bootloader mode, then upload again: on the XIAO SAMD21, short the two `RST` pads twice quickly. On the XIAO RP2040, hold `BOOT` while plugging it in.
-- **The Serial Monitor shows nothing after a reset:** `begin()` briefly disconnects the board, so the host sees it again as a DS4. Open the Serial Monitor after `begin()`, or reopen it.
+- **The upload fails, or the port of the board is gone:** once the sketch runs, the board presents itself as a DS4, without a serial port by default (see [USB serial port](#usb-serial-port)), or with a different one if it's kept. Put the board in bootloader mode, then upload again: on the XIAO SAMD21, short the two `RST` pads twice quickly. On the XIAO RP2040, hold `BOOT` while plugging it in.
+- **The Serial Monitor shows nothing:** the serial port is removed by default, so keep it with `setUsbSerialEnabled(true)`. If it's kept and shows nothing after a reset, `begin()` briefly disconnected the board so the host sees it again as a DS4: open the Serial Monitor after `begin()`, or reopen it.
 
 ## Contributing
 

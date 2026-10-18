@@ -107,10 +107,16 @@ void onSetReport(uint8_t reportId, hid_report_type_t reportType, uint8_t const *
 }  // namespace
 
 // Adds the DS4 interface to the USB device, and reconnects to the host so it sees it.
-bool UsbDevice::begin(const MacAddress &macAddress) {
+bool UsbDevice::begin(const MacAddress &macAddress, bool isSerialEnabled) {
   reportedMacAddress = macAddress;
   // Until the first report is sent, the hosts that request one get the controller at rest.
   buildInputReport(ControlState(), 0, 0, lastInputReport);
+
+  // Removing the serial port resets the whole USB configuration, identity included, so it must
+  // come first.
+  if (!isSerialEnabled) {
+    Serial.end();
+  }
 
   TinyUSBDevice.setID(SONY_VENDOR_ID, DS4_PRODUCT_ID);
   TinyUSBDevice.setDeviceVersion(DS4_DEVICE_VERSION);
