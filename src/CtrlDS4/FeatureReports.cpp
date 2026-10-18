@@ -14,11 +14,6 @@ constexpr int16_t GYRO_CALIBRATION_SPEED = 540;
 /// Resolution of the accelerometer values of the input report, in units per g (as on a real DS4).
 constexpr int16_t ACCEL_UNITS_PER_G = 8192;
 
-/// Hardware version reported to the host.
-constexpr uint16_t HARDWARE_VERSION = 0x0100;
-/// Firmware version reported to the host.
-constexpr uint16_t FIRMWARE_VERSION = 0x0100;
-
 /**
  * @brief Calibration of the motion sensors, as sent over USB.
  *
@@ -72,22 +67,6 @@ struct __attribute__((packed)) MacAddressReport {
 };
 
 /**
- * @brief Hardware and firmware versions, among other unused info.
- */
-struct __attribute__((packed)) FirmwareInfoReport {
-  /// Unused.
-  uint8_t reserved1[34];
-  /// Hardware version of the controller.
-  uint16_t hardwareVersion;
-  /// Unused.
-  uint8_t reserved2[4];
-  /// Firmware version of the controller.
-  uint16_t firmwareVersion;
-  /// Unused.
-  uint8_t reserved3[6];
-};
-
-/**
  * @brief Definition of the controller: its type and the features it has.
  *
  * The layout is not documented, so the content of a real DS4 is sent as is. Taken from GP2040-CE
@@ -102,11 +81,31 @@ const uint8_t DEFINITION_REPORT[] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+/**
+ * @brief Firmware build date and time, hardware and firmware versions, among other info.
+ *
+ * Only some fields are documented, so the content of a real DS4 is sent as is, with versions of a
+ * genuine Sony firmware. Taken from GP2040-CE (https://gp2040-ce.info), Copyright (c) 2024
+ * OpenStickCommunity, MIT License.
+ */
+const uint8_t FIRMWARE_INFO_REPORT[] = {
+  // Build date, "Jun  9 2017"
+  0x4A, 0x75, 0x6E, 0x20, 0x20, 0x39, 0x20, 0x32,
+  0x30, 0x31, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00,
+  // Build time, "12:36:41"
+  0x31, 0x32, 0x3A, 0x33, 0x36, 0x3A, 0x34, 0x31,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  // Hardware version (0xB408) in bytes 34 and 35, and firmware version (0xA007) in bytes 40 and 41,
+  // little-endian, as the hid-playstation driver reads them
+  0x00, 0x01, 0x08, 0xB4, 0x01, 0x00, 0x00, 0x00,
+  0x07, 0xA0, 0x10, 0x20, 0x00, 0xA0, 0x02, 0x00
+};
+
 static_assert(sizeof(DEFINITION_REPORT) == 47, "Must match the Report Count of report 3 in HID_REPORT_DESCRIPTOR");
 static_assert(sizeof(CalibrationReport) == 36, "Must match the Report Count of report 2 in HID_REPORT_DESCRIPTOR");
 static_assert(sizeof(PairingInfoReport) == 15, "Must match the Report Count of report 18 in HID_REPORT_DESCRIPTOR");
 static_assert(sizeof(MacAddressReport) == 6, "Must match the Report Count of report 129 in HID_REPORT_DESCRIPTOR");
-static_assert(sizeof(FirmwareInfoReport) == 48, "Must match the Report Count of report 163 in HID_REPORT_DESCRIPTOR");
+static_assert(sizeof(FIRMWARE_INFO_REPORT) == 48, "Must match the Report Count of report 163 in HID_REPORT_DESCRIPTOR");
 
 /**
  * @brief Copies a MAC address in the order the DS4 sends it, last byte first.
@@ -189,18 +188,6 @@ MacAddressReport makeMacAddressReport(const MacAddress &macAddress) {
   return report;
 }
 
-/**
- * @brief Builds the firmware info.
- *
- * @return The firmware info report, with HARDWARE_VERSION and FIRMWARE_VERSION.
- */
-FirmwareInfoReport makeFirmwareInfoReport() {
-  FirmwareInfoReport report = {};
-  report.hardwareVersion = HARDWARE_VERSION;
-  report.firmwareVersion = FIRMWARE_VERSION;
-  return report;
-}
-
 }  // namespace
 
 // Fills the content of a feature report requested by the host.
@@ -215,7 +202,7 @@ uint16_t buildFeatureReport(uint8_t reportId, const MacAddress &macAddress, uint
     case MAC_ADDRESS_REPORT_ID:
       return copyReport(makeMacAddressReport(macAddress), buffer, size);
     case FIRMWARE_INFO_REPORT_ID:
-      return copyReport(makeFirmwareInfoReport(), buffer, size);
+      return copyReport(FIRMWARE_INFO_REPORT, buffer, size);
     default:
       // The descriptor declares many more reports, as a real DS4 does. Hosts may read them, and
       // could give up on a controller that doesn't answer.
