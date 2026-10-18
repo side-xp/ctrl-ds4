@@ -10,11 +10,14 @@ namespace {
 
 /// USB vendor ID of Sony, which hosts use to recognize the controller.
 constexpr uint16_t SONY_VENDOR_ID = 0x054C;
-/// USB product ID of the first DS4 model (CUH-ZCT1), the most widely supported one.
-constexpr uint16_t DS4_PRODUCT_ID = 0x05C4;
+/// USB product ID of the second DS4 model (CUH-ZCT2), the identity tested on iOS. Linux and Android
+/// support it as well as the first model (0x05C4).
+constexpr uint16_t DS4_PRODUCT_ID = 0x09CC;
+/// Device release number reported by a real DS4, in binary-coded decimal.
+constexpr uint16_t DS4_DEVICE_VERSION = 0x0100;
 
-/// Manufacturer name reported by a real DS4.
-const char MANUFACTURER_NAME[] = "Sony Computer Entertainment";
+/// Manufacturer name reported by the second DS4 model (the first one reports "Sony Computer Entertainment").
+const char MANUFACTURER_NAME[] = "Sony Interactive Entertainment";
 /// Product name reported by a real DS4.
 const char PRODUCT_NAME[] = "Wireless Controller";
 
@@ -83,6 +86,7 @@ bool UsbDevice::begin(const MacAddress &macAddress) {
   reportedMacAddress = macAddress;
 
   TinyUSBDevice.setID(SONY_VENDOR_ID, DS4_PRODUCT_ID);
+  TinyUSBDevice.setDeviceVersion(DS4_DEVICE_VERSION);
   TinyUSBDevice.setManufacturerDescriptor(MANUFACTURER_NAME);
   TinyUSBDevice.setProductDescriptor(PRODUCT_NAME);
 
