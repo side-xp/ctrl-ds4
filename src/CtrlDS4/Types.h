@@ -46,18 +46,35 @@ enum Button : uint8_t {
 
 /**
  * @brief Analog sticks of the controller.
+ *
+ * Each axis goes from STICK_MIN to STICK_MAX, like on a real DS4: X goes from left to right, and
+ * Y from up to down.
  */
 enum Stick : uint8_t {
   LeftStick,  ///< Left analog stick.
   RightStick  ///< Right analog stick.
 };
 
+/// Value of a stick axis pushed fully left (X) or up (Y).
+constexpr uint8_t STICK_MIN = 0;
+/// Value of a stick axis at rest.
+constexpr uint8_t STICK_CENTER = 128;
+/// Value of a stick axis pushed fully right (X) or down (Y).
+constexpr uint8_t STICK_MAX = 255;
+
 /**
  * @brief Analog triggers of the controller.
+ *
+ * Each trigger goes from TRIGGER_MIN (released) to TRIGGER_MAX (fully pressed).
  */
 enum Trigger : uint8_t {
   L2,  ///< Left trigger.
   R2   ///< Right trigger.
 };
+
+/// Value of a released trigger.
+constexpr uint8_t TRIGGER_MIN = 0;
+/// Value of a fully pressed trigger.
+constexpr uint8_t TRIGGER_MAX = 255;
 
 }  // namespace CtrlDS4
