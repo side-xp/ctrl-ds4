@@ -2,16 +2,24 @@
 version: '3'
 
 vars:
-  # @todo Adjust to the architectures supported by the library.
-  # The Uno (8-bit AVR) and Uno R4 (32-bit ARM) catch most issues tied to type sizes or memory.
-  BOARDS: arduino:avr:uno arduino:renesas_uno:minima
+  # One board per supported architecture (see `architectures` in library.properties), using the
+  # Adafruit TinyUSB stack the library relies on.
+  BOARDS: Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb rp2040:rp2040:seeed_xiao_rp2040:usbstack=tinyusb
+  # Board manager indexes of the third-party cores of BOARDS, comma-separated.
+  BOARD_MANAGER_URLS: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json,https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
   # @todo Switch to `update` once the library is registered in the Library Manager.
   LIBRARY_MANAGER_MODE: submit
   # Tracked and new files, without the ignored ones (such as build outputs).
   SOURCES:
     sh: git ls-files --cached --others --exclude-standard -- '*.c' '*.cpp' '*.h' '*.hpp' '*.ino'
-  EXAMPLES:
-    sh: git ls-files --cached --others --exclude-standard -- 'examples/*.ino'
+  # The examples, and the test sketches of extras/tests (hidden from the Arduino IDE examples).
+  SKETCHES:
+    sh: git ls-files --cached --others --exclude-standard -- 'examples/*.ino' 'extras/tests/*.ino'
+  # Sketches of SKETCHES that need hardware only SAMD boards have (e.g. the touch controller of the
+  # SAMD21), skipped when compiling for the other boards.
+  SAMD_ONLY_SKETCHES: examples/TouchPads/TouchPads.ino
+  # Libraries that some sketches need besides CtrlDS4, pinned so a new release can't break the build.
+  SKETCH_LIBRARIES: '"Adafruit FreeTouch Library@1.1.3"'
 
 tasks:
   check:
@@ -37,7 +45,7 @@ tasks:
       - arduino-lint --compliance strict --library-manager {{.LIBRARY_MANAGER_MODE}} --project-type library
 
   compile:
-    desc: Compile the examples for each board of BOARDS
+    desc: Compile the examples and test sketches for each board of BOARDS
     cmds:
       - for: { var: BOARDS }
         task: compile:board
@@ -45,17 +53,31 @@ tasks:
 
   compile:board:
     internal: true
+    vars:
+      # The architecture is the second part of the FQBN (Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb -> samd).
+      ARCHITECTURE: '{{index (splitList ":" .BOARD) 1}}'
     cmds:
-      - for: { var: EXAMPLES }
-        cmd: arduino-cli compile --fqbn {{.BOARD}} --library . --warnings all {{dir .ITEM}}
+      - for: { var: SKETCHES }
+        cmd: >-
+          {{if and (has .ITEM (splitList " " .SAMD_ONLY_SKETCHES)) (ne .ARCHITECTURE "samd")}}
+          echo "Skipping {{.ITEM}} for {{.BOARD}}: it needs a SAMD board"
+          {{else}}
+          arduino-cli compile --fqbn {{.BOARD}} --library . --warnings all {{dir .ITEM}}
+          {{end}}
 
   setup:cores:
     desc: Install the cores of the boards of BOARDS
     cmds:
-      - arduino-cli core update-index
-      # The core is the FQBN without its board part (arduino:avr:uno -> arduino:avr).
+      - arduino-cli core update-index --additional-urls {{.BOARD_MANAGER_URLS}}
+      # The core is the first two parts of the FQBN (Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb -> Seeeduino:samd).
       - for: { var: BOARDS }
-        cmd: arduino-cli core install {{.ITEM | splitList ":" | initial | join ":"}}
+        cmd: arduino-cli core install {{slice (splitList ":" .ITEM) 0 2 | join ":"}} --additional-urls {{.BOARD_MANAGER_URLS}}
+
+  setup:libraries:
+    desc: Install the libraries some sketches need besides CtrlDS4 (see SKETCH_LIBRARIES)
+    cmds:
+      - arduino-cli lib update-index
+      - arduino-cli lib install {{.SKETCH_LIBRARIES}}
 
   setup:editor:
     desc: Generate the compilation database used by VS Code (pass `-- --fqbn <board>` for another board)

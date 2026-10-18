@@ -19,7 +19,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 EXAMPLES_DIR = ROOT_DIR / 'examples'
 DATABASES_DIR = ROOT_DIR / 'build' / 'compile-commands'
 OUTPUT_FILE = ROOT_DIR / 'build' / 'compile_commands.json'
-DEFAULT_FQBN = 'arduino:avr:uno'
+DEFAULT_FQBN = 'Seeeduino:samd:seeed_XIAO_m0:usbstack=tinyusb'
 
 # The Arduino build adds these to the main sketch file, which is plain C++ otherwise.
 INO_EXTRA_ARGUMENTS = ['-include', 'Arduino.h', '-x', 'c++']

@@ -1,29 +1,36 @@
 /**
  * @file Basic.ino
- * @brief Minimal usage of CtrlDS4: initialize it once, then update it continuously.
+ * @brief Minimal usage of CtrlDS4: presses Cross briefly every second, without any wiring.
  */
 
 #include <CtrlDS4.h>
 
-/// Library instance driven by setup() and loop().
-CtrlDS4 ctrlDS4;
+/// Time between two presses of Cross, in milliseconds.
+const unsigned long PRESS_INTERVAL_MS = 1000;
+/// How long Cross stays pressed, in milliseconds.
+const unsigned long PRESS_DURATION_MS = 100;
+
+/// Emulated controller driven by setup() and loop().
+CtrlDS4::Controller controller;
 
 /**
  * @brief Runs once at startup.
  *
- * Opens the serial port to report errors, then initializes the library.
+ * Initializes the controller.
  */
 void setup() {
-  Serial.begin(9600);
-
-  if (!ctrlDS4.begin()) {
-    Serial.println(F("CtrlDS4 failed to initialize."));
-  }
+  controller.begin();
 }
 
 /**
  * @brief Runs repeatedly after setup().
+ *
+ * Sets the state of the controls, then lets the controller report it to the host.
  */
 void loop() {
-  ctrlDS4.update();
+  // Pressed during the first PRESS_DURATION_MS of every PRESS_INTERVAL_MS, without blocking loop().
+  bool isCrossPressed = millis() % PRESS_INTERVAL_MS < PRESS_DURATION_MS;
+  controller.setButton(CtrlDS4::Cross, isCrossPressed);
+
+  controller.update();
 }
