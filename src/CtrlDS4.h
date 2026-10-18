@@ -40,6 +40,21 @@ namespace CtrlDS4 {
  */
 class Controller {
 public:
+  /**
+   * @brief Function called when the host changes the rumble.
+   *
+   * @param strongMotor New speed of the StrongMotor.
+   * @param weakMotor New speed of the WeakMotor.
+   */
+  using RumbleCallback = void (*)(uint8_t strongMotor, uint8_t weakMotor);
+
+  /**
+   * @brief Function called when the host changes the color of the lightbar.
+   *
+   * @param color New color of the lightbar.
+   */
+  using LightbarCallback = void (*)(const LightbarColor &color);
+
   /* --- Lifecycle --- */
 
   /**
@@ -53,7 +68,11 @@ public:
   bool begin();
 
   /**
-   * @brief Sends the state of the controls to the host, when the host is ready for it.
+   * @brief Exchanges the latest state with the host.
+   *
+   * Applies the rumble and lightbar changes requested by the host (calling the callbacks set with
+   * onRumble() and onLightbarColor()), then sends the state of the controls when the host is ready
+   * for it.
    *
    * Call on every iteration of loop(), without blocking it for long: the host expects a new report
    * every few milliseconds. Does nothing until begin() has succeeded.
@@ -134,7 +153,54 @@ public:
    */
   MacAddressSource getMacAddressSource() const;
 
+  /* --- Rumble and lightbar --- */
+
+  /**
+   * @brief Gets the speed of a rumble motor, as last requested by the host.
+   *
+   * @param motor Motor to read.
+   * @return Speed of the motor, from 0 (stopped) to 255 (full speed). 0 if it's not a Motor value.
+   */
+  uint8_t getRumble(Motor motor) const;
+
+  /**
+   * @brief Gets the color of the lightbar, as last requested by the host.
+   *
+   * @return Color of the lightbar. Off until the host sets it.
+   */
+  LightbarColor getLightbarColor() const;
+
+  /**
+   * @brief Sets the function to call when the host changes the rumble.
+   *
+   * The function is called from update(), so it can safely drive pins or print to Serial.
+   *
+   * @param callback Function to call, or nullptr to stop calling one.
+   */
+  void onRumble(RumbleCallback callback);
+
+  /**
+   * @brief Sets the function to call when the host changes the color of the lightbar.
+   *
+   * The function is called from update(), so it can safely drive pins or print to Serial.
+   *
+   * @param callback Function to call, or nullptr to stop calling one.
+   */
+  void onLightbarColor(LightbarCallback callback);
+
 private:
+  /**
+   * @brief Applies the rumble and lightbar changes requested by the host, if any.
+   *
+   * Calls the callbacks of the parts that changed.
+   */
+  void applyHostOutput();
+
+  /**
+   * @brief Sends the state of the controls to the host, if it's ready for it.
+   */
+  void sendInputReport();
+
   /// Set by begin() once initialization has succeeded.
   bool _isReady = false;
 
@@ -154,6 +220,13 @@ private:
   uint32_t _lastReportMicros = 0;
   /// Time since begin(), in microseconds, as of the last input report. Never wraps in practice.
   uint64_t _elapsedMicros = 0;
+
+  /// Rumble and lightbar state, as last requested by the host.
+  internal::OutputState _output;
+  /// Called when the host changes the rumble, if set.
+  RumbleCallback _rumbleCallback = nullptr;
+  /// Called when the host changes the color of the lightbar, if set.
+  LightbarCallback _lightbarCallback = nullptr;
 };
 
 }  // namespace CtrlDS4

@@ -139,4 +139,25 @@ enum MacAddressSource : uint8_t {
   MacFallback       ///< Fixed address, used when the board has no usable unique ID.
 };
 
+/**
+ * @brief Rumble motors of the controller, driven by the host.
+ *
+ * Each motor speed goes from 0 (stopped) to 255 (full speed).
+ */
+enum Motor : uint8_t {
+  StrongMotor,  ///< Heavy motor in the left grip, for strong and slow rumble.
+  WeakMotor     ///< Light motor in the right grip, for light and fast rumble.
+};
+
+/**
+ * @brief Color of the lightbar, set by the host.
+ *
+ * Each component goes from 0 (off) to 255 (full brightness).
+ */
+struct LightbarColor {
+  uint8_t red;    ///< Red component.
+  uint8_t green;  ///< Green component.
+  uint8_t blue;   ///< Blue component.
+};
+
 }  // namespace CtrlDS4

@@ -9,6 +9,7 @@
 #include <Adafruit_TinyUSB.h>
 
 #include "InputReport.h"
+#include "OutputReport.h"
 #include "Types.h"
 
 namespace CtrlDS4 {
@@ -52,6 +53,17 @@ public:
    * @return true if the report was queued, false if the host is not ready (see isReadyToSend()).
    */
   bool sendInputReport(const InputReport &report);
+
+  /**
+   * @brief Gets the rumble and lightbar state requested by the host, if it changed it.
+   *
+   * The host sends its requests while the USB stack runs, which can be during an interrupt: they
+   * are kept until this function reads them, so they can be handled safely from loop().
+   *
+   * @param state Receives the requested state, if the host sent a request since the last call.
+   * @return true if the host sent a request since the last call, false otherwise.
+   */
+  bool readOutputState(OutputState &state);
 
 private:
   /// HID interface of the controller.

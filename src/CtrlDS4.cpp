@@ -44,9 +44,41 @@ bool Controller::begin() {
   return _isReady;
 }
 
-// Sends the state of the controls to the host, when the host is ready for it.
+// Exchanges the latest state with the host.
 void Controller::update() {
-  if (!_isReady || !_usbDevice.isReadyToSend()) {
+  if (!_isReady) {
+    return;
+  }
+
+  applyHostOutput();
+  sendInputReport();
+}
+
+// Applies the rumble and lightbar changes requested by the host, if any.
+void Controller::applyHostOutput() {
+  internal::OutputState output;
+  if (!_usbDevice.readOutputState(output)) {
+    return;
+  }
+
+  bool hasRumbleChanged = output.strongMotor != _output.strongMotor
+                          || output.weakMotor != _output.weakMotor;
+  bool hasLightbarChanged = output.lightbarColor.red != _output.lightbarColor.red
+                            || output.lightbarColor.green != _output.lightbarColor.green
+                            || output.lightbarColor.blue != _output.lightbarColor.blue;
+  _output = output;
+
+  if (hasRumbleChanged && _rumbleCallback != nullptr) {
+    _rumbleCallback(_output.strongMotor, _output.weakMotor);
+  }
+  if (hasLightbarChanged && _lightbarCallback != nullptr) {
+    _lightbarCallback(_output.lightbarColor);
+  }
+}
+
+// Sends the state of the controls to the host, if it's ready for it.
+void Controller::sendInputReport() {
+  if (!_usbDevice.isReadyToSend()) {
     return;
   }
 
@@ -120,6 +152,33 @@ const MacAddress &Controller::getMacAddress() const {
 // Tells where the MAC address comes from.
 MacAddressSource Controller::getMacAddressSource() const {
   return _macAddressSource;
+}
+
+// Gets the speed of a rumble motor, as last requested by the host.
+uint8_t Controller::getRumble(Motor motor) const {
+  switch (motor) {
+    case StrongMotor:
+      return _output.strongMotor;
+    case WeakMotor:
+      return _output.weakMotor;
+    default:
+      return 0;
+  }
+}
+
+// Gets the color of the lightbar, as last requested by the host.
+LightbarColor Controller::getLightbarColor() const {
+  return _output.lightbarColor;
+}
+
+// Sets the function to call when the host changes the rumble.
+void Controller::onRumble(RumbleCallback callback) {
+  _rumbleCallback = callback;
+}
+
+// Sets the function to call when the host changes the color of the lightbar.
+void Controller::onLightbarColor(LightbarCallback callback) {
+  _lightbarCallback = callback;
 }
 
 }  // namespace CtrlDS4
