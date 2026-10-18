@@ -9,25 +9,32 @@
 
 #include <Arduino.h>
 
+#include "CtrlDS4/Types.h"
+
+/// Everything the CtrlDS4 library declares: the Controller class and the types of its controls.
+namespace CtrlDS4 {
+
 /**
- * @brief Entry point of the library.
+ * @brief Emulated DS4 controller.
  *
  * Call begin() once from setup(), then update() on every iteration of loop().
  *
  * @code
- * CtrlDS4 ctrlDS4;
+ * CtrlDS4::Controller controller;
  *
  * void setup() {
- *   ctrlDS4.begin();
+ *   controller.begin();
  * }
  *
  * void loop() {
- *   ctrlDS4.update();
+ *   controller.update();
  * }
  * @endcode
  */
-class CtrlDS4 {
+class Controller {
 public:
+  /* --- Lifecycle --- */
+
   /**
    * @brief Initializes the library.
    *
@@ -55,3 +62,5 @@ private:
   /// Set by begin() once initialization has succeeded.
   bool _isReady = false;
 };
+
+}  // namespace CtrlDS4

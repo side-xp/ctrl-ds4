@@ -1,14 +1,16 @@
 #include "CtrlDS4.h"
 
+namespace CtrlDS4 {
+
 // Initializes the library. Call once from setup().
-bool CtrlDS4::begin() {
+bool Controller::begin() {
   // @todo Initialize pins, peripherals and state here.
   _isReady = true;
   return _isReady;
 }
 
 // Runs the library logic. Call on every iteration of loop().
-void CtrlDS4::update() {
+void Controller::update() {
   if (!_isReady) {
     return;
   }
@@ -17,6 +19,8 @@ void CtrlDS4::update() {
 }
 
 // Returns true once begin() has completed successfully.
-bool CtrlDS4::isReady() const {
+bool Controller::isReady() const {
   return _isReady;
 }
+
+}  // namespace CtrlDS4

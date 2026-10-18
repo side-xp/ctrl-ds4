@@ -1,22 +1,22 @@
 /**
  * @file Basic.ino
- * @brief Minimal usage of CtrlDS4: initialize it once, then update it continuously.
+ * @brief Minimal usage of CtrlDS4: initialize the controller once, then update it continuously.
  */
 
 #include <CtrlDS4.h>
 
-/// Library instance driven by setup() and loop().
-CtrlDS4 ctrlDS4;
+/// Emulated controller driven by setup() and loop().
+CtrlDS4::Controller controller;
 
 /**
  * @brief Runs once at startup.
  *
- * Opens the serial port to report errors, then initializes the library.
+ * Opens the serial port to report errors, then initializes the controller.
  */
 void setup() {
   Serial.begin(9600);
 
-  if (!ctrlDS4.begin()) {
+  if (!controller.begin()) {
     Serial.println(F("CtrlDS4 failed to initialize."));
   }
 }
@@ -25,5 +25,5 @@ void setup() {
  * @brief Runs repeatedly after setup().
  */
 void loop() {
-  ctrlDS4.update();
+  controller.update();
 }
