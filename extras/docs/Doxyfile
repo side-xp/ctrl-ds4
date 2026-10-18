@@ -1,8 +1,8 @@
 # Doxygen only parses the documentation comments of the sources here: it writes them as XML, which
-# scripts/generate_api_docs.py converts to the Markdown pages of the API reference. The options
+# scripts/generate_docs.py converts to the Markdown pages of the API reference. The options
 # left out keep their default value (see https://www.doxygen.nl/manual/config.html).
 #
-# Paths are relative to the repository root, where generate_api_docs.py runs Doxygen.
+# Paths are relative to the repository root, where generate_docs.py runs Doxygen.
 
 PROJECT_NAME           = CtrlDS4
 

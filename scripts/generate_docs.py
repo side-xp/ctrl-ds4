@@ -81,16 +81,16 @@ ADMONITIONS = {'note': 'note', 'attention': 'warning', 'important': 'warning', '
 # Characters that Doxygen writes as elements, mostly from the HTML entities of the comments.
 SPECIAL_CHARACTERS = {
     'sp': ' ',
-    'nonbreakablespace': ' ',
-    'ndash': '–',
-    'mdash': '—',
-    'lsquo': '‘',
-    'rsquo': '’',
-    'ldquo': '“',
-    'rdquo': '”',
-    'copy': '©',
-    'registered': '®',
-    'trademark': '™',
+    'nonbreakablespace': '\u00a0',
+    'ndash': '\u2013',
+    'mdash': '\u2014',
+    'lsquo': '\u2018',
+    'rsquo': '\u2019',
+    'ldquo': '\u201c',
+    'rdquo': '\u201d',
+    'copy': '\u00a9',
+    'registered': '\u00ae',
+    'trademark': '\u2122',
 }
 # Elements of the comments with nothing to show on the website.
 IGNORED_ELEMENTS = {'anchor', 'docbookonly', 'image', 'indexentry', 'latexonly', 'manonly', 'rtfonly', 'xmlonly'}
@@ -179,10 +179,10 @@ def slugify(text: str) -> str:
     """Returns the HTML id of a heading, in the format of SideXP.Instadoc.
 
     Args:
-        text: Text of the heading (e.g. "bind(Button, uint8_t)").
+        text: Text of the heading (e.g. "setValue(Channel, uint8_t)").
 
     Returns:
-        The id (e.g. "bind-button-uint8_t").
+        The id (e.g. "setvalue-channel-uint8_t").
     """
     return re.sub(r'[^a-z0-9_]+', '-', text.lower()).strip('-')
 
@@ -483,7 +483,7 @@ def member_heading(member: Element) -> str:
         member: The <memberdef> element of the member.
 
     Returns:
-        The heading (e.g. "bind(Button, uint8_t, ButtonWiring)").
+        The heading (e.g. "setValue(Channel, uint8_t)").
     """
     name = member.findtext('name')
     if member.get('kind') != 'function':
@@ -499,7 +499,7 @@ def enumerator_values(enum: Element) -> list[tuple[Element, str]]:
         enum: The <memberdef> element of the enum.
 
     Returns:
-        Each <enumvalue> element, with its declaration (e.g. "Cross = 0"). The value is computed
+        Each <enumvalue> element, with its declaration (e.g. "First = 0"). The value is computed
         when it's implicit, unless it follows a value that isn't a plain integer.
     """
     values = []
@@ -912,7 +912,7 @@ class Page:
 
     # Path of the page, relative to the API reference folder.
     path: str
-    # Title of the page: the name of the symbol, in its namespace (e.g. "Controller").
+    # Title of the page: the name of the symbol, in its namespace (e.g. "Device").
     title: str
     # Namespace of the symbol, empty for the global namespace.
     namespace: str
@@ -1022,7 +1022,7 @@ class ApiReference:
         """Adds a page to the API reference.
 
         Args:
-            name: Name of the symbol in its namespace (e.g. "Controller" or "Outer::Inner"), or
+            name: Name of the symbol in its namespace (e.g. "Device" or "Outer::Inner"), or
                 title of a 'members' page.
             namespace: Namespace of the symbol.
             kind: What the page documents (see Page.kind).
