@@ -66,6 +66,8 @@ void Controller::applyHostOutput() {
   bool hasLightbarChanged = output.lightbarColor.red != _output.lightbarColor.red
                             || output.lightbarColor.green != _output.lightbarColor.green
                             || output.lightbarColor.blue != _output.lightbarColor.blue;
+  bool hasLightbarBlinkChanged = output.lightbarBlink.onMs != _output.lightbarBlink.onMs
+                                 || output.lightbarBlink.offMs != _output.lightbarBlink.offMs;
   _output = output;
 
   if (hasRumbleChanged && _rumbleCallback != nullptr) {
@@ -73,6 +75,9 @@ void Controller::applyHostOutput() {
   }
   if (hasLightbarChanged && _lightbarCallback != nullptr) {
     _lightbarCallback(_output.lightbarColor);
+  }
+  if (hasLightbarBlinkChanged && _lightbarBlinkCallback != nullptr) {
+    _lightbarBlinkCallback(_output.lightbarBlink);
   }
 }
 
@@ -171,6 +176,11 @@ LightbarColor Controller::getLightbarColor() const {
   return _output.lightbarColor;
 }
 
+// Gets the blinking of the lightbar, as last requested by the host.
+LightbarBlink Controller::getLightbarBlink() const {
+  return _output.lightbarBlink;
+}
+
 // Sets the function to call when the host changes the rumble.
 void Controller::onRumble(RumbleCallback callback) {
   _rumbleCallback = callback;
@@ -179,6 +189,11 @@ void Controller::onRumble(RumbleCallback callback) {
 // Sets the function to call when the host changes the color of the lightbar.
 void Controller::onLightbarColor(LightbarCallback callback) {
   _lightbarCallback = callback;
+}
+
+// Sets the function to call when the host changes the blinking of the lightbar.
+void Controller::onLightbarBlink(LightbarBlinkCallback callback) {
+  _lightbarBlinkCallback = callback;
 }
 
 }  // namespace CtrlDS4

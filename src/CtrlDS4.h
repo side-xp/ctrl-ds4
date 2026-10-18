@@ -55,6 +55,13 @@ public:
    */
   using LightbarCallback = void (*)(const LightbarColor &color);
 
+  /**
+   * @brief Function called when the host changes the blinking of the lightbar.
+   *
+   * @param blink New blinking of the lightbar.
+   */
+  using LightbarBlinkCallback = void (*)(const LightbarBlink &blink);
+
   /* --- Lifecycle --- */
 
   /**
@@ -71,8 +78,8 @@ public:
    * @brief Exchanges the latest state with the host.
    *
    * Applies the rumble and lightbar changes requested by the host (calling the callbacks set with
-   * onRumble() and onLightbarColor()), then sends the state of the controls when the host is ready
-   * for it.
+   * onRumble(), onLightbarColor() and onLightbarBlink()), then sends the state of the controls when
+   * the host is ready for it.
    *
    * Call on every iteration of loop(), without blocking it for long: the host expects a new report
    * every few milliseconds. Does nothing until begin() has succeeded.
@@ -171,6 +178,13 @@ public:
   LightbarColor getLightbarColor() const;
 
   /**
+   * @brief Gets the blinking of the lightbar, as last requested by the host.
+   *
+   * @return Blinking of the lightbar. Not blinking until the host sets it.
+   */
+  LightbarBlink getLightbarBlink() const;
+
+  /**
    * @brief Sets the function to call when the host changes the rumble.
    *
    * The function is called from update(), so it can safely drive pins or print to Serial.
@@ -187,6 +201,15 @@ public:
    * @param callback Function to call, or nullptr to stop calling one.
    */
   void onLightbarColor(LightbarCallback callback);
+
+  /**
+   * @brief Sets the function to call when the host changes the blinking of the lightbar.
+   *
+   * The function is called from update(), so it can safely drive pins or print to Serial.
+   *
+   * @param callback Function to call, or nullptr to stop calling one.
+   */
+  void onLightbarBlink(LightbarBlinkCallback callback);
 
 private:
   /**
@@ -227,6 +250,8 @@ private:
   RumbleCallback _rumbleCallback = nullptr;
   /// Called when the host changes the color of the lightbar, if set.
   LightbarCallback _lightbarCallback = nullptr;
+  /// Called when the host changes the blinking of the lightbar, if set.
+  LightbarBlinkCallback _lightbarBlinkCallback = nullptr;
 };
 
 }  // namespace CtrlDS4

@@ -160,4 +160,15 @@ struct LightbarColor {
   uint8_t blue;   ///< Blue component.
 };
 
+/**
+ * @brief Blinking of the lightbar, set by the host.
+ *
+ * The lightbar shows its color for onMs, then turns off for offMs, and repeats. When both are 0,
+ * the lightbar doesn't blink: it always shows its color.
+ */
+struct LightbarBlink {
+  uint16_t onMs;   ///< How long the lightbar stays on, in milliseconds.
+  uint16_t offMs;  ///< How long the lightbar stays off, in milliseconds.
+};
+
 }  // namespace CtrlDS4

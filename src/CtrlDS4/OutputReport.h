@@ -18,7 +18,7 @@ constexpr uint8_t OUTPUT_REPORT_ID = 0x05;
 /**
  * @brief State of the rumble and the lightbar, as last requested by the host.
  *
- * A default-constructed state has the motors stopped and the lightbar off.
+ * A default-constructed state has the motors stopped and the lightbar off, without blinking.
  */
 struct OutputState {
   /// Speed of the StrongMotor.
@@ -27,13 +27,15 @@ struct OutputState {
   uint8_t weakMotor = 0;
   /// Color of the lightbar.
   LightbarColor lightbarColor = {};
+  /// Blinking of the lightbar.
+  LightbarBlink lightbarBlink = {};
 };
 
 /**
  * @brief Applies an output report of the host to a state.
  *
- * The report tells which parts it changes (rumble, lightbar), so the other parts of the state are
- * kept.
+ * The report tells which parts it changes (rumble, lightbar color, lightbar blinking), so the other
+ * parts of the state are kept.
  *
  * @param report Content of the report, after its report ID.
  * @param size Size of the content in bytes.

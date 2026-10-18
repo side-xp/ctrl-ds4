@@ -24,6 +24,7 @@ void setup() {
 
   controller.onRumble(printRumble);
   controller.onLightbarColor(printLightbarColor);
+  controller.onLightbarBlink(printLightbarBlink);
   controller.begin();
 }
 
@@ -61,4 +62,17 @@ void printLightbarColor(const CtrlDS4::LightbarColor &color) {
   Serial.print(color.green);
   Serial.print(F(", blue "));
   Serial.println(color.blue);
+}
+
+/**
+ * @brief Prints the new blinking of the lightbar.
+ *
+ * @param blink New blinking, both durations at 0 when the lightbar doesn't blink.
+ */
+void printLightbarBlink(const CtrlDS4::LightbarBlink &blink) {
+  Serial.print(F("Lightbar blink: on "));
+  Serial.print(blink.onMs);
+  Serial.print(F(" ms, off "));
+  Serial.print(blink.offMs);
+  Serial.println(F(" ms"));
 }
