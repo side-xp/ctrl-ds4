@@ -61,6 +61,10 @@ arduino-cli lib install --zip-path <downloaded file>.zip
 
 ## Usage
 
+<!-- docs:remove:start -->
+See the [documentation website](https://side-xp.github.io/ctrl-ds4/) for the guides, the API reference and a controller tester.
+<!-- docs:remove:end -->
+
 ### Quick start
 
 Wire a push button between pin `D2` and `GND`, and another between pin `D3` and `GND`. No resistor is needed: the library enables the internal pull-up resistors of the pins.
@@ -233,6 +237,13 @@ These parts of a real DS4 are not emulated yet, and may be added in future versi
 - **Boards without a unique ID:** the library can't generate an address of its own for them, so each one needs its address set with `setMacAddress()` (see [MAC address](#mac-address)).
 
 ### Troubleshooting
+
+<!-- docs:remove:start -->
+To check what a host receives from the board, open the [controller tester](https://side-xp.github.io/ctrl-ds4/tester/) in a browser on that host.
+<!-- docs:remove:end -->
+<!-- docs:only:start
+To check what a host receives from the board, open the [controller tester](extras/docs/pages/tester.md) in a browser on that host.
+docs:only:end -->
 
 - **The upload fails, or the port of the board is gone:** once the sketch runs, the board presents itself as a DS4, without a serial port by default (see [USB serial port](#usb-serial-port)), or with a different one if it's kept. Put the board in bootloader mode, then upload again: on the XIAO SAMD21, short the two `RST` pads twice quickly. On the XIAO RP2040, hold `BOOT` while plugging it in.
 - **The Serial Monitor shows nothing:** the serial port is removed by default, so keep it with `setUsbSerialEnabled(true)`. If it's kept and shows nothing after a reset, `begin()` briefly disconnected the board so the host sees it again as a DS4: open the Serial Monitor after `begin()`, or reopen it.

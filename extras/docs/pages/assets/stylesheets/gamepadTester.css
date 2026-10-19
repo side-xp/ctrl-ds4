@@ -1,0 +1,254 @@
+/*
+ * Controller tester of the documentation website (see tester.md and gamepadTester.js).
+ *
+ * Only uses the colors of the theme, so the tester follows the light and dark schemes. The script
+ * sets --gt-value (value of a button or an axis), --gt-x and --gt-y (axes of a stick), and the
+ * data-pressed attribute (pressed button).
+ */
+
+/* #region States */
+
+/* Until the script sets the tester up, the parts shown in some states only stay hidden. */
+.gamepad-tester:not([data-gt-ready]) [data-gt-when],
+.gamepad-tester [hidden] {
+  display: none !important;
+}
+
+/* #endregion */
+
+/* #region Controller info */
+
+.gamepad-tester__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.2rem;
+  margin: 1em 0;
+}
+
+.gamepad-tester__picker select {
+  max-width: 100%;
+  margin-left: 0.4rem;
+  font: inherit;
+  color: inherit;
+  background: var(--md-default-bg-color);
+  border: 0.05rem solid var(--md-default-fg-color--lighter);
+  border-radius: 0.2rem;
+}
+
+/* #endregion */
+
+/* #region Controller */
+
+.gamepad-tester__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 0 1.6rem;
+}
+
+/* Side by side once the drawing stays readable next to the values. */
+@media screen and (min-width: 60em) {
+  .gamepad-tester__layout {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+.gamepad-tester__layout output {
+  font-family: var(--md-code-font-family);
+  font-variant-numeric: tabular-nums;
+}
+
+.gamepad-tester__controller {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 1em 0;
+}
+
+.gamepad-tester__body {
+  fill: var(--md-code-bg-color);
+  stroke: var(--md-default-fg-color--lighter);
+  stroke-width: 2;
+}
+
+/* Backgrounds of the D-pad and the sticks. */
+.gamepad-tester__plate {
+  fill: var(--md-default-fg-color--lightest);
+}
+
+.gamepad-tester__shape {
+  fill: var(--md-default-bg-color);
+  stroke: var(--md-default-fg-color--light);
+  stroke-width: 2;
+  transition: fill 50ms, stroke 50ms;
+}
+
+.gamepad-tester__symbol {
+  fill: none;
+  stroke: var(--md-default-fg-color--light);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gamepad-tester__label {
+  fill: var(--md-default-fg-color--light);
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gamepad-tester__control[data-pressed] > .gamepad-tester__shape {
+  fill: var(--md-accent-fg-color);
+  stroke: var(--md-accent-fg-color);
+}
+
+.gamepad-tester__control[data-pressed] > .gamepad-tester__symbol {
+  stroke: var(--md-accent-bg-color);
+}
+
+.gamepad-tester__control[data-pressed] > .gamepad-tester__label {
+  fill: var(--md-accent-bg-color);
+}
+
+/* The triggers are analog: their fill shows how far they're pressed, instead of the whole shape. */
+.gamepad-tester__trigger[data-pressed] > .gamepad-tester__shape {
+  fill: var(--md-default-bg-color);
+}
+
+/* The label of a trigger is half over its fill: a halo keeps it readable over both. */
+.gamepad-tester__trigger > .gamepad-tester__label,
+.gamepad-tester__trigger[data-pressed] > .gamepad-tester__label {
+  fill: var(--md-default-fg-color);
+  stroke: var(--md-default-bg-color);
+  stroke-width: 3px;
+  paint-order: stroke;
+}
+
+.gamepad-tester__fill {
+  fill: var(--md-accent-fg-color);
+  transform: scaleX(var(--gt-value, 0));
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+/* Half the room left between the cap and the edge of its plate, in SVG units. */
+.gamepad-tester__cap {
+  --gt-stick-travel: 12px;
+
+  transform: translate(calc(var(--gt-x, 0) * var(--gt-stick-travel)), calc(var(--gt-y, 0) * var(--gt-stick-travel)));
+}
+
+/* #endregion */
+
+/* #region Rumble */
+
+.gamepad-tester__rumble {
+  margin: 1.5em 0;
+  padding: 0.4rem 1.2rem 1rem;
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+}
+
+.gamepad-tester__rumble legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+
+.gamepad-tester__slider {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr) 5rem;
+  align-items: center;
+  gap: 0.2rem 1rem;
+  margin: 0.6rem 0;
+}
+
+/* On narrow screens, the name of the parameter goes above its input. */
+@media screen and (max-width: 44.9375em) {
+  .gamepad-tester__slider {
+    grid-template-columns: minmax(0, 1fr) 5rem;
+  }
+
+  .gamepad-tester__slider > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.gamepad-tester__slider input {
+  width: 100%;
+  accent-color: var(--md-accent-fg-color);
+}
+
+.gamepad-tester__slider output {
+  font-variant-numeric: tabular-nums;
+}
+
+.gamepad-tester__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+/* #endregion */
+
+/* #region Raw data */
+
+.gamepad-tester__raw-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.4rem;
+  margin: 0.6em 0 1em;
+}
+
+.gamepad-tester__raw-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.3rem 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--md-code-bg-color);
+  border-radius: 0.2rem;
+  outline: 0.1rem solid transparent;
+  transition: outline-color 50ms;
+}
+
+.gamepad-tester__raw-item[data-pressed] {
+  outline-color: var(--md-accent-fg-color);
+}
+
+.gamepad-tester__raw-item output {
+  font-family: var(--md-code-font-family);
+  font-variant-numeric: tabular-nums;
+}
+
+.gamepad-tester__bar {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 0.3rem;
+  overflow: hidden;
+  background: var(--md-default-fg-color--lightest);
+  border-radius: 0.15rem;
+}
+
+.gamepad-tester__bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  background: var(--md-accent-fg-color);
+  transform: scaleX(var(--gt-value, 0));
+  transform-origin: left center;
+}
+
+/* An axis fills from the middle: to the right when positive, to the left when negative. */
+.gamepad-tester__bar--axis::after {
+  left: 50%;
+  width: 50%;
+}
+
+/* #endregion */

@@ -3,7 +3,8 @@
  * @brief Prints the rumble and lightbar changes requested by the host.
  *
  * Open the Serial Monitor, then trigger a rumble or a lightbar change from the host: for example,
- * the vibration test of a gamepad tester website in Chrome, or the controller settings of Steam.
+ * the rumble test of the controller tester (https://side-xp.github.io/ctrl-ds4/tester/) in Chrome,
+ * or the controller settings of Steam.
  *
  * Replace the prints with your own outputs, such as a vibration motor driven with analogWrite(), or
  * an RGB LED. The USB serial port is kept for the prints, so some hosts may refuse the controller:

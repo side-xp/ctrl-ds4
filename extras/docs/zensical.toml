@@ -14,6 +14,11 @@ copyright = """
 docs_dir = "pages"
 site_dir = "site"
 
+# Scripts and stylesheets added to every page, relative to docs_dir. The controller tester only
+# sets itself up on the page that has one (see pages/tester.md).
+extra_javascript = ["assets/javascripts/gamepadTester.js"]
+extra_css = ["assets/stylesheets/gamepadTester.css"]
+
 [project.theme]
 name = "side-xp"
 language = "en"
