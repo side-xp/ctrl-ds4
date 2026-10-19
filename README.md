@@ -61,6 +61,10 @@ arduino-cli lib install --zip-path <downloaded file>.zip
 
 ## Usage
 
+<!-- docs:remove:start -->
+See the [documentation website](https://side-xp.github.io/ctrl-ds4/) for the guides and the API reference.
+<!-- docs:remove:end -->
+
 ### Quick start
 
 Wire a push button between pin `D2` and `GND`, and another between pin `D3` and `GND`. No resistor is needed: the library enables the internal pull-up resistors of the pins.
